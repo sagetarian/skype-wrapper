@@ -8,7 +8,3 @@ Maintainer: Shannon A. Black <shannon@netforge.co.za>
 Size: 1.0
 Installed-size: 1.0
 Description: Puts control of Skype in the Ubuntu Messaging Menu
-Puts control of Skype in the Ubuntu Messaging Menu
-- Lists all unread messages
-- Each unread message opens the relevant Skype chat window
-- Support for Group Chats

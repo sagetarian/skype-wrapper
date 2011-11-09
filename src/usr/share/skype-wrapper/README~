@@ -8,13 +8,19 @@ applot will have a 'Skype' entry that shows unread messages.
 When you click the skype-entry SKype's main window will be shown. If you click
 on one of the unread messages a message window for this conversation is opened.
 
-TODO:
- * make this work better
- * update callback timeout
- * remove items that have been marked as read within Skype
- * et&
-
 Andreas Happe
 2010
 
 [0] http://skype.com
+
+
+Added:
+ * update callback timeout
+ * remove items that have been marked as read within Skype
+ * derived the *.dbb avatar retrieval from http://cyrenity.wordpress.com/
+   by Author Ghulam Mustafa <mustafa.pk@gmail.com>
+ * listen for people coming and going offline and display their Full Name and Avatar
+
+Shannon Black
+2011
+

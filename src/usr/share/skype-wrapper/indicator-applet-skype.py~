@@ -96,13 +96,13 @@ class NotificationServer:
   def show_indicator(self, conversation):      
     if not conversation.display_name in self.indicators:
 	self.indicators[conversation.display_name] = indicate.Indicator()
-    self.indicators[conversation.display_name].set_property("name", conversation.display_name)
-    self.indicators[conversation.display_name].set_property_bool("draw-attention", True)
-    self.indicators[conversation.display_name].set_property("timestamp", str(conversation.timestamp))
-    self.indicators[conversation.display_name].set_property_time('time', conversation.timestamp)
-    self.indicators[conversation.display_name].connect("user-display", self.show_conversation)
-    self.indicators[conversation.display_name].show()
-    return
+	self.indicators[conversation.display_name].set_property("name", conversation.display_name)
+	self.indicators[conversation.display_name].set_property_bool("draw-attention", True)
+	self.indicators[conversation.display_name].set_property("timestamp", str(conversation.timestamp))
+	self.indicators[conversation.display_name].set_property_time('time', conversation.timestamp)
+	self.indicators[conversation.display_name].connect("user-display", self.show_conversation)
+	self.indicators[conversation.display_name].show()
+	return
     
     
   def user_online_status(self, username, fullname, online_text):

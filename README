@@ -13,9 +13,19 @@ Andreas Happe
 
 [0] http://skype.com
 
-Added:
+Added to 0.2:
+ * Support Group Chats
+ * Lists all unread messages
+ * Each message now opens relavent window
+ * Opening this minimizes Skype, and thereafter clicking it brings focus to skype
+
+Added to 0.3:
  * update callback timeout
  * remove items that have been marked as read within Skype
+ * derived the *.dbb avatar retrieval from http://cyrenity.wordpress.com/
+   by Author Ghulam Mustafa <mustafa.pk@gmail.com>
+ * listen for people coming and going offline and display their Full Name and Avatar
 
 Shannon Black
 2011
+
