@@ -1,0 +1,20 @@
+This is a simple skype[0] plugin for Ubuntu's indicator-applet[1].
+
+Installation:
+Just start the script on your computer. Skype will automatically ask you if you
+want to allow it's connection. As soon as the script is started the indicator
+applot will have a 'Skype' entry that shows unread messages.
+
+When you click the skype-entry SKype's main window will be shown. If you click
+on one of the unread messages a message window for this conversation is opened.
+
+TODO:
+ * make this work better
+ * update callback timeout
+ * remove items that have been marked as read within Skype
+ * et&
+
+Andreas Happe
+2010
+
+[0] http://skype.com

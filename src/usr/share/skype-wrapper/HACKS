@@ -1,0 +1,15 @@
+remove skype from whitelist:
+gsettings set com.canonical.Unity.Panel systray-whitelist "['JavaEmbeddedFrame', 'Mumble', 'Wine', 'hp-systray']"
+
+edit /usr/share/applications/skype.desktop:
+Exec=bash -c "cd /home/bkanuka/skype/ && ./skype-wrapper.py"
+Icon=skype
+
+Register skype in panel:
+create file in ~/.config/indicators/messages/applications/
+named "skype" with contents
+/usr/share/applications/skype.desktop
+
+Put icons in appropriate places in /usr/share/icons/ubuntu-mono-dark/apps/
+
+

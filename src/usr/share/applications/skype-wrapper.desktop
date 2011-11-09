@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Skype
+Comment=Skype Internet Telephony
+Exec=skype-wrapper
+Icon=skype-wrapper
+NoDisplay=true
+Terminal=false
+Type=Application
+Encoding=UTF-8
