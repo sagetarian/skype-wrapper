@@ -15,7 +15,9 @@ Andreas Happe
 
 Added to 0.2:
  * Support Group Chats
- 
+ * Lists all unread messages
+ * Each message now opens relavent window
+ * Opening this minimizes Skype, and thereafter clicking it brings focus to skype
 
 Added to 0.3:
  * update callback timeout

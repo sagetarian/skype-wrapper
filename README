@@ -25,6 +25,8 @@ Added to 0.3:
  * derived the *.dbb avatar retrieval from http://cyrenity.wordpress.com/
    by Author Ghulam Mustafa <mustafa.pk@gmail.com>
  * listen for people coming and going offline and display their Full Name and Avatar
+ * use libnotify
+ * draw-attention
 
 Shannon Black
 2011

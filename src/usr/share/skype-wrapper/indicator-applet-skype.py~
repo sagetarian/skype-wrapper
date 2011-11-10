@@ -95,8 +95,8 @@ class NotificationServer:
     id = indicator.get_property("id")
     indicator_name = indicator.get_property("indicator_name")
 
-    self.skype.remove_conversation(int(id))
-    self.skype.show_chat_windows(int(id))
+    self.skype.remove_conversation(id)
+    self.skype.show_chat_windows(display_name)
     
     del self.indicators
     for _id in self.skype.unread_conversations:
