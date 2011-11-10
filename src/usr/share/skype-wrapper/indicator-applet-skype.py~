@@ -145,7 +145,7 @@ class NotificationServer:
     
     if avatar.filename:
         os.system(u'notify-send -i "'+avatar.filename+'" "'+group_chat_title+'" "'+conversation.skypereturn.Body+'"');
-    else :
+    else
         os.system(u'notify-send -i "/usr/share/skype/avatars/Skype.png" "'+group_chat_title+'" "'+conversation.skypereturn.Body+'"');
 
 # class for retrieving user avatars
