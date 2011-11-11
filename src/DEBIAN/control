@@ -1,9 +1,9 @@
 Package: skype-wrapper
-Version: 0.3.4
+Version: 0.3.4.1
 Section: System
 Priority: optional
 Architecture: all
-Depends: skype, python-skype (>= 1.0.31)
+Depends: python-skype (>= 1.0.31)
 Maintainer: Shannon A. Black <shannon@netforge.co.za>
 Size: 1.0
 Installed-size: 1.0
