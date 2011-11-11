@@ -7,6 +7,9 @@ import os
 def start_skype():
 	start = time.time()
 	ret = subprocess.call(['python','indicator-applet-skype.py'])
+	if ret == 2:
+	    start_skype()
+	    return
 	end = time.time()
 	print "Applet closed"
 	if end - start < 5:

@@ -27,8 +27,6 @@ Added to 0.3:
  * listen for people coming and going offline and display their Full Name and Avatar
  * use libnotify
  * draw-attention
- * Skype presence tied to Messaging Menu Presence (via telepathy)
- * Disables notifications if your Online Presence is Busy / Do Not Disturb
 
 Shannon Black
 2011

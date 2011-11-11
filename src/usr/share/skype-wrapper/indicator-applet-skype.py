@@ -49,7 +49,7 @@ def do_nothing(indicator):
     
 AppletRunning = True
     
-CB_INTERVALS = 5000
+CB_INTERVALS = 500
 
 FOCUSDEBUG = 4
 ERROR = 3
@@ -63,6 +63,37 @@ LOGTYPES = {
     3:"ERROR: ",
     4:"DEVELOPER DEBUG: ",
 }
+
+STATUSLIST = {
+    1: "Offline",
+    2: "Online",
+    3: "Away",
+    4: "Extended_Away",
+    5: "Invisible",
+    6: "Busy"
+}
+
+SKYPESTATUS = {
+    1: Skype4Py.cusOffline,
+    2: Skype4Py.cusOnline,
+    3: Skype4Py.cusAway,
+    4: Skype4Py.cusNotAvailable,
+    5: Skype4Py.cusInvisible,
+    6: Skype4Py.cusDoNotDisturb,
+}
+
+SKYPETOTELEPATHY = {
+    Skype4Py.cusOffline:1,
+    Skype4Py.cusOnline:2,
+    Skype4Py.cusAway:3,
+    Skype4Py.cusNotAvailable:4,
+    Skype4Py.cusInvisible:5,
+    Skype4Py.cusDoNotDisturb:6,
+    Skype4Py.cusLoggedOut:1,
+    Skype4Py.cusSkypeMe:3,
+}
+
+DONOTDISTURB = False
 
 # only display errors
 LOGLEVEL = INFO
@@ -123,7 +154,7 @@ class NotificationServer:
     
   def user_online_status(self, username, fullname, online_text):
     log("User "+username+" "+online_text, INFO)
-    if username == 'echo123':
+    if self.skype.skype_presence == Skype4Py.cusDoNotDisturb or username == 'echo123':
         return
         
     avatar = SkypeAvatar(username)
@@ -137,6 +168,9 @@ class NotificationServer:
         os.system('notify-send -i "/usr/share/skype/avatars/Skype.png" "'+fullname+'" "'+online_text+'"');
   
   def new_message(self, conversation):
+    if self.skype.skype_presence == Skype4Py.cusDoNotDisturb:
+        return
+        
     group_chat_title = unicode(conversation.skypereturn.Sender.FullName + " → " + conversation.skypereturn.Chat.Topic)
     avatar = SkypeAvatar(conversation.skypereturn.Sender.Handle)
     fullname = conversation.skypereturn.Sender.FullName
@@ -250,13 +284,14 @@ class SkypeBehaviour:
         break
 
     log("Attaching skype-wrapper to Skype process", INFO)
-    time.sleep(4)
     while True:
+        time.sleep(4)
         try:
-            self.skype.Attach(Wait=True)
+            self.skype.Attach(1)
             break
         except:
-            print "."
+            # we tell the parent process that the skype couldn't attached
+            sys.exit(2) 
                         
     log("Attached complete", INFO)
     time.sleep(2)
@@ -274,10 +309,14 @@ class SkypeBehaviour:
     self.cb_show_indicator = None
     self.cb_user_status_change = None
     self.cb_log_message = None
+    self.telepathy_presence = self.getPresence()
+    self.skype.ChangeUserStatus(SKYPESTATUS[self.telepathy_presence])
+    self.skype_presence = self.skype.CurrentUserStatus
     
     #self.initOnlineUserList()
     gobject.timeout_add(CB_INTERVALS, self.checkUnreadMessages)
     gobject.timeout_add(CB_INTERVALS, self.checkOnlineUsers)
+    gobject.timeout_add(CB_INTERVALS, self.checkOnlineStatus)
 
   def SetShowConversationCallback(self, func):
     self.cb_show_conversation = func
@@ -365,10 +404,65 @@ class SkypeBehaviour:
          if not self.unread_conversations[id].Read:
             self.cb_show_indicator(self.unread_conversations[id]) 
     return AppletRunning
+  
+  def checkOnlineStatus(self):
+    new_telepathy_presence = self.getPresence()
+    if new_telepathy_presence != self.telepathy_presence:
+        self.telepathy_presence = new_telepathy_presence
+        self.skype.ChangeUserStatus(SKYPESTATUS[self.telepathy_presence])
+        self.skype_presence = SKYPESTATUS[self.telepathy_presence]
+        return AppletRunning
+        
+    new_skype_presence = self.skype.CurrentUserStatus
+    if self.skype_presence != new_skype_presence:
+        self.skype_presence = new_skype_presence
+        new_telepathy_presence = SKYPETOTELEPATHY[self.skype_presence]
+        self.setPresence(new_telepathy_presence)
+        self.telepathy_presence = new_telepathy_presence
+    
+    return AppletRunning
 
   def show_chat_windows(self, id):
     self.unread_conversations[id].skypereturn.Chat.OpenWindow()
+    
+  def setPresence(self, presence):
+    bus = dbus.SessionBus()
+    account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
+                         '/org/freedesktop/Telepathy/AccountManager')
+    accounts = account_manager.Get(
+        'org.freedesktop.Telepathy.AccountManager', 'ValidAccounts')
+
+    for account_path in accounts:
+        if str(account_path) == '/org/freedesktop/Telepathy/Account/ring/tel/ring':
+            continue
+        account = bus.get_object('org.freedesktop.Telepathy.AccountManager', account_path)
+        enabled = account.Get('org.freedesktop.Telepathy.Account', 'Enabled')
+        if not enabled:
+            continue
+        presence_text = ""
+        if presence in STATUSLIST:
+            presence_text = STATUSLIST[presence]
+        account.Set('org.freedesktop.Telepathy.Account', 'RequestedPresence', \
+            dbus.Struct((dbus.UInt32(presence), presence_text, ''),
+            signature='uss'),
+            dbus_interface='org.freedesktop.DBus.Properties')
   
+  def getPresence(self) :
+    bus = dbus.SessionBus()
+    account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
+                         '/org/freedesktop/Telepathy/AccountManager')
+    accounts = account_manager.Get(
+        'org.freedesktop.Telepathy.AccountManager', 'ValidAccounts')
+
+    for account_path in accounts:
+        if str(account_path) == '/org/freedesktop/Telepathy/Account/ring/tel/ring':
+            continue
+        account = bus.get_object('org.freedesktop.Telepathy.AccountManager', account_path)
+        enabled = account.Get('org.freedesktop.Telepathy.Account', 'Enabled')
+        if not enabled:
+            continue
+        i,s,t = account.Get('org.freedesktop.Telepathy.Account', 'RequestedPresence')
+        return i
 
 def runCheck():
     log("Check if Skype instance is running", INFO)
