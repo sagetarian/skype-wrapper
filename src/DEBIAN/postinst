@@ -1,0 +1,4 @@
+#!/bin/sh
+#xhost +
+#/usr/share/skype-wrapper/postinst.py
+glib-compile-schemas /usr/share/glib-2.0/schemas/

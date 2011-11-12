@@ -27,8 +27,16 @@ Added to 0.3:
  * listen for people coming and going offline and display their Full Name and Avatar
  * use libnotify
  * draw-attention
+ 
+Added to 0.4
  * Skype presence tied to Messaging Menu Presence (via telepathy)
  * Disables notifications if your Online Presence is Busy / Do Not Disturb
+ * Skype user avatars next to indicators in the messaging menu
+ * [Fix:] Opening message in skype removes the chat from the messaging menu
+ * [TODO:] gsettings
+ * [TODO:] simplify installation
+ * [TODO:] file transfer notifications
+ * [TODO:] Silence skype popups
 
 Shannon Black
 2011

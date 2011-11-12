@@ -3,6 +3,9 @@
 import subprocess
 import time
 import os
+import commands
+import dbus
+import sys
 	
 def start_skype():
 	start = time.time()
@@ -20,6 +23,24 @@ def start_skype():
 
 
 if __name__ == "__main__":
-	os.chdir('/usr/share/skype-wrapper')
-	print "Starting skype-wrapper"
-	start_skype()
+    os.chdir('/usr/share/skype-wrapper')
+
+    output = commands.getoutput('ps -A | grep indicator-skype' )
+    
+    # until the dbus is working just disallow skype-wrapper
+    if 'indicator-skype' in output:
+        try:
+	        # Try and set skype window to normal
+            remote_bus = dbus.SessionBus()
+            out_connection = remote_bus.get_object('com.Skype.API', '/com/Skype')
+            out_connection.Invoke('NAME Skype4Py')
+            out_connection.Invoke('PROTOCOL 5')
+            #out_connection.Invoke('SET WINDOWSTATE MAXIMIZED')
+            out_connection.Invoke('SET WINDOWSTATE NORMAL')
+            out_connection.Invoke('FOCUS')
+            sys.exit(0)
+        except:
+            sys.exit(0)
+
+    print "Starting skype-wrapper"
+    start_skype()

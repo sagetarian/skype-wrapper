@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="apps.skype-wrapper" path="/apps/skype-wrapper/">
+    <key type="b" name="notify-on-useronlinestatuschange">
+      <default>true</default>
+      <summary>Should skype-wrapper use the Desktop Notification to notify you when someone goes online and offline?</summary>
+    </key>
+    <key type="b" name="notify-on-messagerecieve">
+      <default>true</default>
+      <summary>Should skype-wrapper use the Desktop Notification to notify you when you receive a message?</summary>
+    </key>
+    <key type="b" name="notify-on-initializing">
+      <default>true</default>
+      <summary>Should skype-wrapper use a Skype like approach by notifying you of online users during startup?</summary>
+    </key>
+  </schema>
+</schemalist>

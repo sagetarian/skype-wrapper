@@ -30,10 +30,13 @@
 # Documentation:
 # just start it
 
+import unitylauncher
 import indicate
 import gobject
 import gtk
 import Skype4Py
+import shared
+import settings
 
 import os
 import sys
@@ -41,7 +44,13 @@ import commands
 import time
 import dbus
 
+from PIL import Image
+import StringIO
+import binascii
+
 import threading
+
+bus = dbus.SessionBus()
 
 def do_nothing(indicator):
     True
@@ -130,11 +139,20 @@ class NotificationServer:
     self.skype.show_chat_windows(int(id))
     
     del self.indicators
+    self.indicators = {}
     for _id in self.skype.unread_conversations:
         if not self.skype.unread_conversations[int(id)].Read:
             self.show_indicator(self.skype.unread_conversations[int(id)])
+            
+  def reset_indicators(self) :
+    del self.indicators
+    self.indicators = {}
+    for _id in self.skype.unread_conversations:
+        self.show_indicator(self.skype.unread_conversations[int(_id)])
+    unitylauncher.count(len(self.indicators))
+  
 
-  def show_indicator(self, conversation):      
+  def show_indicator(self, conversation):
     log("Updating Indicator", INFO)
     new = False
     if not conversation.indicator_name in self.indicators:
@@ -147,6 +165,14 @@ class NotificationServer:
     self.indicators[conversation.indicator_name].set_property("name", str(conversation.display_name))    
     self.indicators[conversation.indicator_name].set_property("timestamp", str(conversation.timestamp))
     self.indicators[conversation.indicator_name].set_property_time('time', conversation.timestamp)
+    avatar = SkypeAvatar(conversation.skypereturn.Sender.Handle)
+    if avatar.filename:
+        bitmapVersion = avatar.get_bitmap_version()
+        if bitmapVersion != self.indicators[conversation.indicator_name].get_property("icon"):
+            if avatar.filename:
+                self.indicators[conversation.indicator_name].set_property("icon", str(avatar.get_bitmap_version()))
+            else:
+                self.indicators[conversation.indicator_name].set_property("icon", str(avatar.get_bitmap_version()))
     if new:
         self.indicators[conversation.indicator_name].show()
     return
@@ -154,7 +180,7 @@ class NotificationServer:
     
   def user_online_status(self, username, fullname, online_text):
     log("User "+username+" "+online_text, INFO)
-    if self.skype.skype_presence == Skype4Py.cusDoNotDisturb or username == 'echo123':
+    if not settings.get_notify_on_useronlinestatuschange() or self.skype.skype_presence == Skype4Py.cusDoNotDisturb or username == 'echo123':
         return
         
     avatar = SkypeAvatar(username)
@@ -165,22 +191,27 @@ class NotificationServer:
     if avatar.filename:
         os.system('notify-send -i "'+avatar.filename+'" "'+fullname+'" "'+online_text+'"');
     else:
-        os.system('notify-send -i "/usr/share/skype/avatars/Skype.png" "'+fullname+'" "'+online_text+'"');
+        os.system('notify-send -i "/usr/share/skype-wrapper/icons/skype-wrapper-48.svg" "'+fullname+'" "'+online_text+'"');
   
   def new_message(self, conversation):
-    if self.skype.skype_presence == Skype4Py.cusDoNotDisturb:
+    if not settings.get_notify_on_messagerecieve() or self.skype.skype_presence == Skype4Py.cusDoNotDisturb:
         return
+    #conversation.skypereturn.Chat.Type == Skype4Py.chatTypeMultiChat and  
+    if conversation.skypereturn.Chat.Topic:
+        group_chat_title = unicode(conversation.skypereturn.Sender.FullName + " ► " + conversation.skypereturn.Chat.Topic)
+    else:
+        group_chat_title = unicode(conversation.display_name)
         
-    group_chat_title = unicode(conversation.skypereturn.Sender.FullName + " → " + conversation.skypereturn.Chat.Topic)
     avatar = SkypeAvatar(conversation.skypereturn.Sender.Handle)
     fullname = conversation.skypereturn.Sender.FullName
+    
     if not fullname:
         fullname = username
     
     if avatar.filename:
         os.system(u'notify-send -i "'+avatar.filename+'" "'+group_chat_title+'" "'+conversation.skypereturn.Body+'"');
     else :
-        os.system(u'notify-send -i "/usr/share/skype/avatars/Skype.png" "'+group_chat_title+'" "'+conversation.skypereturn.Body+'"');
+        os.system(u'notify-send -i "/usr/share/skype-wrapper/icons/skype-wrapper-48.svg" "'+group_chat_title+'" "'+conversation.skypereturn.Body+'"');
 
 # class for retrieving user avatars
 class SkypeAvatar:
@@ -199,7 +230,7 @@ class SkypeAvatar:
         "profile32768"
     }
     
-    path = os.getenv("HOME")+"/.thumbnails/normal/"
+    self.path = os.getenv("HOME")+"/.thumbnails/normal/"
     skypedir = os.getenv("HOME")+"/.Skype/"+skype.skype.CurrentUser.Handle+"/"
     
     self.image_data = ""
@@ -216,13 +247,25 @@ class SkypeAvatar:
     binary = "".join(skbin)
     self.get_icon(username, binary)
     if len(self.image_data) :
-        f = open(path+"skype-wrapper-"+username+".jpg", mode="w")
+        f = open(self.path+"skype-wrapper-"+username+".jpg", mode="w")
         f.write(self.image_data)
         f.close()
-        self.filename = path+"skype-wrapper-"+username+".jpg"
+        self.filename = self.path+"skype-wrapper-"+username+".jpg"
         log("Wrote avatar to file "+self.filename, INFO)
         
+    self.imagepath = self.path+"skype-wrapper-"+username
     return
+    
+  def get_bitmap_version(self):
+    if not self.filename:
+        return ""
+    im = Image.open(self.filename)
+    s = StringIO.StringIO()
+    im.save(s, "BMP")
+    f = open(self.imagepath+".bmp", mode="w")
+    f.write(s.getvalue())
+    f.close()
+    return binascii.b2a_base64(s.getvalue())#self.imagepath+".bmp"
     
   def get_icon(self, buddy, binary):
     startmark = "\xff\xd8"
@@ -287,7 +330,7 @@ class SkypeBehaviour:
     while True:
         time.sleep(4)
         try:
-            self.skype.Attach(1)
+            self.skype.Attach(Wait=True)
             break
         except:
             # we tell the parent process that the skype couldn't attached
@@ -309,11 +352,13 @@ class SkypeBehaviour:
     self.cb_show_indicator = None
     self.cb_user_status_change = None
     self.cb_log_message = None
+    self.cb_read_within_skype = None
     self.telepathy_presence = self.getPresence()
     self.skype.ChangeUserStatus(SKYPESTATUS[self.telepathy_presence])
     self.skype_presence = self.skype.CurrentUserStatus
     
-    #self.initOnlineUserList()
+    if not settings.get_notify_on_initializing():
+        self.initOnlineUserList()
     gobject.timeout_add(CB_INTERVALS, self.checkUnreadMessages)
     gobject.timeout_add(CB_INTERVALS, self.checkOnlineUsers)
     gobject.timeout_add(CB_INTERVALS, self.checkOnlineStatus)
@@ -329,6 +374,9 @@ class SkypeBehaviour:
     
   def SetNewMessageCallback(self, func):
     self.cb_log_message = func
+    
+  def SetSkypeReadCallback(self, func):
+    self.cb_read_within_skype = func
 
   def remove_conversation(self, id):
     #skype_name = self.name_mappings[display_name]
@@ -363,7 +411,9 @@ class SkypeBehaviour:
   def checkOnlineUsers(self) :
     log("Checking online status changing users", INFO)
     #check who is now offline
-    for friend in self.usersonline:
+    tmp = self.usersonline
+    for friend, v in tmp.items():
+        print friend
         for skypefriends in self.skype.Friends:
             if skypefriends.OnlineStatus == "OFFLINE" and friend == skypefriends.Handle:
                 del self.usersonline[skypefriends.Handle]
@@ -388,21 +438,29 @@ class SkypeBehaviour:
         for mesg in self.skype.MissedMessages:
             missedmessages.append(mesg)
             
+    unread = self.unread_conversations
+    self.unread_conversations = {}
     if missedmessages and self.cb_show_indicator:
-       for mesg in reversed(missedmessages):
-         id = mesg.Id
-         display_name = mesg.Chat.FriendlyName
-      
-         if not id in self.unread_conversations:
-             conversation = Conversation(display_name, mesg.Timestamp, mesg.Sender.Handle, mesg)
-             self.name_mappings[id] = mesg.Sender.Handle
-             self.unread_conversations[id] = conversation
-         else:
-             self.unread_conversations[id].add_timestamp(mesg.Timestamp)
-         
-         self.logMessage(self.unread_conversations[id])
-         if not self.unread_conversations[id].Read:
-            self.cb_show_indicator(self.unread_conversations[id]) 
+        for mesg in reversed(missedmessages):
+            try:
+                id = mesg.Id
+                display_name = mesg.Chat.FriendlyName
+            except:
+                log("Couldn't get missed message Chat object", ERROR)
+                print mesg.Chat
+                continue
+            if not id in self.unread_conversations:
+                conversation = Conversation(display_name, mesg.Timestamp, mesg.Sender.Handle, mesg)
+                self.name_mappings[id] = mesg.Sender.Handle
+                self.unread_conversations[id] = conversation
+            else:
+                self.unread_conversations[id].add_timestamp(mesg.Timestamp)
+
+            self.logMessage(self.unread_conversations[id])
+            if not self.unread_conversations[id].Read:
+                self.cb_show_indicator(self.unread_conversations[id]) 
+    if len(unread) != len(self.unread_conversations) and self.cb_read_within_skype:
+        self.cb_read_within_skype()
     return AppletRunning
   
   def checkOnlineStatus(self):
@@ -426,7 +484,6 @@ class SkypeBehaviour:
     self.unread_conversations[id].skypereturn.Chat.OpenWindow()
     
   def setPresence(self, presence):
-    bus = dbus.SessionBus()
     account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
                          '/org/freedesktop/Telepathy/AccountManager')
     accounts = account_manager.Get(
@@ -443,12 +500,10 @@ class SkypeBehaviour:
         if presence in STATUSLIST:
             presence_text = STATUSLIST[presence]
         account.Set('org.freedesktop.Telepathy.Account', 'RequestedPresence', \
-            dbus.Struct((dbus.UInt32(presence), presence_text, ''),
-            signature='uss'),
+            dbus.Struct((dbus.UInt32(presence), presence_text, ''), signature='uss'),
             dbus_interface='org.freedesktop.DBus.Properties')
   
   def getPresence(self) :
-    bus = dbus.SessionBus()
     account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
                          '/org/freedesktop/Telepathy/AccountManager')
     accounts = account_manager.Get(
@@ -480,7 +535,7 @@ def runCheck():
     return AppletRunning
 
 if __name__ == "__main__":
-
+  shared.set_proc_name('indicator-skype')
   os.chdir('/usr/share/skype-wrapper')
   
   skype = SkypeBehaviour();
@@ -491,6 +546,7 @@ if __name__ == "__main__":
   skype.SetShowIndicatorCallback(server.show_indicator)
   skype.SetUserOnlineStatusChangeCallback(server.user_online_status)
   skype.SetNewMessageCallback(server.new_message)
+  skype.SetSkypeReadCallback(server.reset_indicators)
   
   server.connect(skype)
   

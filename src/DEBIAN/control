@@ -1,10 +1,29 @@
 Package: skype-wrapper
-Version: 0.3.4.1
+Version: 0.4
 Section: System
 Priority: optional
 Architecture: all
 Depends: python-skype (>= 1.0.31)
+Suggests: skype
 Maintainer: Shannon A. Black <shannon@netforge.co.za>
 Size: 1.0
 Installed-size: 1.0
-Description: Puts control of Skype in the Ubuntu Messaging Menu
+Description: skype-wrapper
+ Makes Skype more native in Ubuntu by:
+ * Putting skype in messaging menu, and via this
+  * List all unread messages
+  * Open skype and bring focus to it
+  * On clicking an item remove item from skype missed chats
+  * Draw attention to the Messaging Menu
+  * Skype presence tied to Messaging Menu Presence (via telepathy)
+ * Supply libnotify Ubuntu Desktop Notifications when
+  * Users come Online or go Offline
+  * Users send messages
+ * Also Disables notifications if your Online Presence is Busy / Do Not Disturb
+ * Add support for unity launcher (through skype-wrapper.desktop)
+  * Unread message count on unity launcher
+ * Add support for gsettings
+  * Change whether you want Ubuntu Desktop Notifications:
+   * During startup when users are online
+   * When receiving a message
+   * When users come and go offline
