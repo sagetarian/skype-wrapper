@@ -1,6 +1,6 @@
 Package: skype-wrapper
-Version: 0.4
-Section: System
+Version: 0.4.1
+Section: Office
 Priority: optional
 Architecture: all
 Depends: python-skype (>= 1.0.31)

@@ -318,6 +318,7 @@ class SkypeBehaviour:
   def __init__(self):
     log("Initializing Skype API", INFO)
     self.skype = Skype4Py.Skype()
+    self.skype.Timeout = 500
     self.skype.Client.Start(Minimized=True)
 
     log("Waiting for Skype Process", INFO)
@@ -409,75 +410,83 @@ class SkypeBehaviour:
     return
    
   def checkOnlineUsers(self) :
-    log("Checking online status changing users", INFO)
-    #check who is now offline
-    tmp = self.usersonline
-    for friend, v in tmp.items():
-        print friend
-        for skypefriends in self.skype.Friends:
-            if skypefriends.OnlineStatus == "OFFLINE" and friend == skypefriends.Handle:
-                del self.usersonline[skypefriends.Handle]
-                if self.cb_user_status_change:
-                        self.cb_user_status_change(skypefriends.Handle, skypefriends.FullName, "went offline")
-    
-    #check who is now online
-    if self.skype.Friends:
-        for friend in self.skype.Friends:
-            if not friend.Handle in self.usersonline:
-                if friend.OnlineStatus != "OFFLINE":
-                    self.usersonline[friend.Handle] = friend
+    try :
+        log("Checking online status changing users", INFO)
+        #check who is now offline
+        tmp = self.usersonline
+        for friend, v in tmp.items():
+            for skypefriends in self.skype.Friends:
+                if skypefriends.OnlineStatus == "OFFLINE" and friend == skypefriends.Handle:
+                    del self.usersonline[skypefriends.Handle]
                     if self.cb_user_status_change:
-                        self.cb_user_status_change(friend.Handle, friend.FullName, "is online")
-    
+                            self.cb_user_status_change(skypefriends.Handle, skypefriends.FullName, "went offline")
+        
+        #check who is now online
+        if self.skype.Friends:
+            for friend in self.skype.Friends:
+                if not friend.Handle in self.usersonline:
+                    if friend.OnlineStatus != "OFFLINE":
+                        self.usersonline[friend.Handle] = friend
+                        if self.cb_user_status_change:
+                            self.cb_user_status_change(friend.Handle, friend.FullName, "is online")
+        
+    except:
+        log("Checking online status changing users failed", WARNING)
     return AppletRunning
   
   def checkUnreadMessages(self):
-    log("Checking unread messages", INFO)
-    missedmessages = []
-    if self.skype.MissedMessages:
-        for mesg in self.skype.MissedMessages:
-            missedmessages.append(mesg)
-            
-    unread = self.unread_conversations
-    self.unread_conversations = {}
-    if missedmessages and self.cb_show_indicator:
-        for mesg in reversed(missedmessages):
-            try:
-                id = mesg.Id
-                display_name = mesg.Chat.FriendlyName
-            except:
-                log("Couldn't get missed message Chat object", ERROR)
-                print mesg.Chat
-                continue
-            if not id in self.unread_conversations:
-                conversation = Conversation(display_name, mesg.Timestamp, mesg.Sender.Handle, mesg)
-                self.name_mappings[id] = mesg.Sender.Handle
-                self.unread_conversations[id] = conversation
-            else:
-                self.unread_conversations[id].add_timestamp(mesg.Timestamp)
+    try :
+        log("Checking unread messages", INFO)
+        missedmessages = []
+        if self.skype.MissedMessages:
+            for mesg in self.skype.MissedMessages:
+                missedmessages.append(mesg)
+                
+        unread = self.unread_conversations
+        self.unread_conversations = {}
+        if missedmessages and self.cb_show_indicator:
+            for mesg in reversed(missedmessages):
+                try:
+                    id = mesg.Id
+                    display_name = mesg.Chat.FriendlyName
+                except:
+                    log("Couldn't get missed message Chat object", ERROR)
+                    print mesg.Chat
+                    continue
+                if not id in self.unread_conversations:
+                    conversation = Conversation(display_name, mesg.Timestamp, mesg.Sender.Handle, mesg)
+                    self.name_mappings[id] = mesg.Sender.Handle
+                    self.unread_conversations[id] = conversation
+                else:
+                    self.unread_conversations[id].add_timestamp(mesg.Timestamp)
 
-            self.logMessage(self.unread_conversations[id])
-            if not self.unread_conversations[id].Read:
-                self.cb_show_indicator(self.unread_conversations[id]) 
-    if len(unread) != len(self.unread_conversations) and self.cb_read_within_skype:
-        self.cb_read_within_skype()
+                self.logMessage(self.unread_conversations[id])
+                if not self.unread_conversations[id].Read:
+                    self.cb_show_indicator(self.unread_conversations[id]) 
+        if len(unread) != len(self.unread_conversations) and self.cb_read_within_skype:
+            self.cb_read_within_skype()
+    except:
+        log("Checking unread messages failed", WARNING)
     return AppletRunning
   
   def checkOnlineStatus(self):
-    new_telepathy_presence = self.getPresence()
-    if new_telepathy_presence != self.telepathy_presence:
-        self.telepathy_presence = new_telepathy_presence
-        self.skype.ChangeUserStatus(SKYPESTATUS[self.telepathy_presence])
-        self.skype_presence = SKYPESTATUS[self.telepathy_presence]
-        return AppletRunning
-        
-    new_skype_presence = self.skype.CurrentUserStatus
-    if self.skype_presence != new_skype_presence:
-        self.skype_presence = new_skype_presence
-        new_telepathy_presence = SKYPETOTELEPATHY[self.skype_presence]
-        self.setPresence(new_telepathy_presence)
-        self.telepathy_presence = new_telepathy_presence
-    
+    try :
+        log("Checking online presence", INFO)
+        new_telepathy_presence = self.getPresence()
+        if new_telepathy_presence != self.telepathy_presence:
+            self.telepathy_presence = new_telepathy_presence
+            self.skype.ChangeUserStatus(SKYPESTATUS[self.telepathy_presence])
+            self.skype_presence = SKYPESTATUS[self.telepathy_presence]
+            return AppletRunning
+            
+        new_skype_presence = self.skype.CurrentUserStatus
+        if self.skype_presence != new_skype_presence:
+            self.skype_presence = new_skype_presence
+            new_telepathy_presence = SKYPETOTELEPATHY[self.skype_presence]
+            self.setPresence(new_telepathy_presence)
+            self.telepathy_presence = new_telepathy_presence
+    except:
+        log("Checking online presence failed", WARNING)
     return AppletRunning
 
   def show_chat_windows(self, id):
@@ -520,17 +529,22 @@ class SkypeBehaviour:
         return i
 
 def runCheck():
-    log("Check if Skype instance is running", INFO)
-    #print self.skype.Client.IsRunning
-    #calling self.skype.Client.IsRunning crashes. wtf. begin hack:
-    output = commands.getoutput('ps -A | grep skype' )
-    
-    if 'skype' not in output.replace('skype-wrapper',''):
-        log("Skype instance has terminated, exiting", WARNING)
-        gtk.main_quit()
-    if 'defunct' in output:
-        log("Skype instance is now defunct, exiting badly", ERROR)
-        gtk.main_quit()
+    try :
+        log("Check if Skype instance is running", INFO)
+        #print self.skype.Client.IsRunning
+        #calling self.skype.Client.IsRunning crashes. wtf. begin hack:
+        output = commands.getoutput('ps -A | grep skype' )
+        output = output.replace('skype-wrapper','')
+        output = output.replace('indicator-skype','')
+        
+        if 'skype' not in output.replace('skype-wrapper',''):
+            log("Skype instance has terminated, exiting", WARNING)
+            gtk.main_quit()
+        if 'defunct' in output:
+            log("Skype instance is now defunct, exiting badly", ERROR)
+            gtk.main_quit()
+    except:
+        log("Checking if skype is running failed", WARNING)
         
     return AppletRunning
 
