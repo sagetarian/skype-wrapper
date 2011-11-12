@@ -33,10 +33,12 @@ Added to 0.4
  * Disables notifications if your Online Presence is Busy / Do Not Disturb
  * Skype user avatars next to indicators in the messaging menu
  * [Fix:] Opening message in skype removes the chat from the messaging menu
- * [TODO:] gsettings
- * [TODO:] simplify installation
- * [TODO:] file transfer notifications
- * [TODO:] Silence skype popups
+ * gsettings
+  * Change whether you want Ubuntu Desktop Notifications:
+   * During startup when users are online
+   * When receiving a message
+   * When users come and go offline
+ * unity launcher support via skype-wrapper.desktop
 
 Shannon Black
 2011
