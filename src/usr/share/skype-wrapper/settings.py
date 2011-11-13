@@ -30,8 +30,8 @@ def get_notify_on_outgoing_filetransfer():
 
 
 def get_show_outgoing_filetransfer_progress():
-    return settings.get_boolean("show-outgoing-filetransfer-progress")
+    return settings.get_boolean("show-outgoing-file-progress")
     
 def get_show_incoming_filetransfer_progress():
-    return settings.get_boolean("show-incoming-filetransfer-progress")
+    return settings.get_boolean("show-incoming-file-progress")
 

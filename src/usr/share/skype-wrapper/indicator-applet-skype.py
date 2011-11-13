@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: latin-1 -*-
 #
-#Copyright 2010 Andreas Happe
+#Copyright 2011 Shannon Black
 #
 #Authors:
 #    Andreas Happe <andreashappe@snikt.net>

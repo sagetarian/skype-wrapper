@@ -1,14 +1,14 @@
 Package: skype-wrapper
-Version: 0.5
+Version: 0.5.1
 Section: Office
 Priority: optional
 Architecture: all
-Depends: python-skype (>= 1.0.31), gtk2-engines-pixbuf
+Depends: python-skype (>= 1.0.31), gtk2-engines-pixbuf, python
 Suggests: skype
 Maintainer: Shannon A. Black <shannon@netforge.co.za>
 Size: 1.0
 Installed-size: 1.0
-Description: skype-wrapper
+Description: Makes Skype more native in Ubuntu
  Makes Skype more native in Ubuntu by:
  * Putting skype in messaging menu, and via this
   * List all unread messages
@@ -24,7 +24,6 @@ Description: skype-wrapper
  * Add support for unity launcher (through skype-wrapper.desktop)
   * Unread message count on unity launcher
   * File transfer progress
-  
  Now you can change skype-wrappers behaviour in gsettings under apps/skype-wrapper
  * Change whether you want Ubuntu Desktop Notifications:
   * During startup when users are online

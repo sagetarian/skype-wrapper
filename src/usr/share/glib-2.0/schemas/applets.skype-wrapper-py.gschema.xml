@@ -29,11 +29,11 @@
       <default>true</default>
       <summary>Should skype-wrapper use the Desktop Notification to notify you when you send a file transfers?</summary>
     </key>
-    <key type="b" name="show-outgoing-filetransfer-progress">
+    <key type="b" name="show-outgoing-file-progress">
       <default>true</default>
       <summary>Whether or not to show the outgoing filetransfer progress in the unity launcher</summary>
     </key>
-    <key type="b" name="show-incoming-filetransfer-progress">
+    <key type="b" name="show-incoming-file-progress">
       <default>true</default>
       <summary>Whether or not to show the incoming filetransfer progress in the unity launcher</summary>
     </key>
