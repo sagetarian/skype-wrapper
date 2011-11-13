@@ -39,6 +39,28 @@ Added to 0.4
    * When receiving a message
    * When users come and go offline
  * unity launcher support via skype-wrapper.desktop
+ 
+Added to 0.5
+ * First startup after login is faster (few seconds)
+ * Closes applet properly after quiting skype itself
+ * Add file transfer notifications
+ * Add file transfer progress to unity launcher
+ * Unity launcher counter includes file transfer and missed messages
+ * Unity launcher asks for attention when:
+  * Receiving messages
+  * file transfer requests being received or finishing
+ * [Fix:] Don't have to have the telepathy online presence menu enabled to work
+ * [Fix:] Add gtk2-engines-pixbuf dependency
+ * [Fix:] failed attempts for the main event listeners are recoverable
+ * gsettings
+  * Change whether you want Ubuntu Desktop Notifications:
+   * On Incoming or Outgoing messages
+  * Unity Launcher to display:
+   * Overall file progress based on incoming and / or outgoing files
+  * Choose to display avatars
+   * in Ubuntu Desktop Notications
+   * next to the indicators
+ * Updated package to say its in the Office section
 
 Shannon Black
 2011

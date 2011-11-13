@@ -2,9 +2,7 @@
 # -*- coding: latin-1 -*-
 #
 
-from gi.repository import Unity, Gio, GObject, Dbusmenu
-
-loop = GObject.MainLoop()
+from gi.repository import Unity, Gio, Dbusmenu
 
 # Pretend to be evolution for the sake of the example 
 launcher = Unity.LauncherEntry.get_for_desktop_id ("skype-wrapper.desktop")
@@ -19,7 +17,7 @@ def count(count) :
 def progress(progress):
     if progress >= 0:
         # Set progress to 42% done 
-        launcher.set_property("progress", 0.42)
+        launcher.set_property("progress", progress)
         launcher.set_property("progress_visible", True)
     else :
         launcher.set_property("progress_visible", False)

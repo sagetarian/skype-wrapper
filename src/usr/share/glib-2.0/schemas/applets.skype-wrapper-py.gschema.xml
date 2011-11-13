@@ -13,5 +13,29 @@
       <default>true</default>
       <summary>Should skype-wrapper use a Skype like approach by notifying you of online users during startup?</summary>
     </key>
+    <key type="b" name="display-indicator-avatars">
+      <default>true</default>
+      <summary>Whether or not to display avatars next to the indicators</summary>
+    </key>
+    <key type="b" name="display-notification-avatars">
+      <default>true</default>
+      <summary>Whether or not to display avatars in the Desktop Notification</summary>
+    </key>
+    <key type="b" name="notify-on-incoming-filetransfer">
+      <default>true</default>
+      <summary>Should skype-wrapper use the Desktop Notification to notify you when you receive a file transfers?</summary>
+    </key>
+    <key type="b" name="notify-on-outgoing-filetransfer">
+      <default>true</default>
+      <summary>Should skype-wrapper use the Desktop Notification to notify you when you send a file transfers?</summary>
+    </key>
+    <key type="b" name="show-outgoing-filetransfer-progress">
+      <default>true</default>
+      <summary>Whether or not to show the outgoing filetransfer progress in the unity launcher</summary>
+    </key>
+    <key type="b" name="show-incoming-filetransfer-progress">
+      <default>true</default>
+      <summary>Whether or not to show the incoming filetransfer progress in the unity launcher</summary>
+    </key>
   </schema>
 </schemalist>

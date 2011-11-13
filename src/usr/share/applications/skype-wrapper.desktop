@@ -2,7 +2,7 @@
 Name=Skype
 Comment=Skype Internet Telephony
 Exec=skype-wrapper
-Icon=skype-wrapper
+Icon=skype
 NoDisplay=true
 Terminal=false
 Type=Application

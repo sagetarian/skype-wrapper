@@ -1,9 +1,9 @@
 Package: skype-wrapper
-Version: 0.4.1
+Version: 0.5
 Section: Office
 Priority: optional
 Architecture: all
-Depends: python-skype (>= 1.0.31)
+Depends: python-skype (>= 1.0.31), gtk2-engines-pixbuf
 Suggests: skype
 Maintainer: Shannon A. Black <shannon@netforge.co.za>
 Size: 1.0
@@ -19,11 +19,18 @@ Description: skype-wrapper
  * Supply libnotify Ubuntu Desktop Notifications when
   * Users come Online or go Offline
   * Users send messages
+  * Users transfer files to you or your transfers are accepted or completed by your skype contact
  * Also Disables notifications if your Online Presence is Busy / Do Not Disturb
  * Add support for unity launcher (through skype-wrapper.desktop)
   * Unread message count on unity launcher
- * Add support for gsettings
-  * Change whether you want Ubuntu Desktop Notifications:
-   * During startup when users are online
-   * When receiving a message
-   * When users come and go offline
+  * File transfer progress
+  
+ Now you can change skype-wrappers behaviour in gsettings under apps/skype-wrapper
+ * Change whether you want Ubuntu Desktop Notifications:
+  * During startup when users are online
+  * When receiving a message
+  * When users come and go offline
+  * Enable or Disable Indicator Avatars
+  * Enable or Disable Notification Avatar
+  * Enable or Disable Notifications for incoming or outgoing file transfers
+  * Enable or Disable showing file trasnfer progress in the unity launcher or choose to show only outgoing / incoming progress

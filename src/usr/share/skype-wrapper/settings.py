@@ -15,3 +15,23 @@ def get_notify_on_messagerecieve():
         
 def get_notify_on_initializing():
     return settings.get_boolean("notify-on-initializing")
+    
+def get_display_indicator_avatars():
+    return settings.get_boolean("display-indicator-avatars")
+    
+def get_display_notification_avatars():
+    return settings.get_boolean("display-notification-avatars")
+    
+def get_notify_on_incoming_filetransfer():
+    return settings.get_boolean("notify-on-incoming-filetransfer")
+    
+def get_notify_on_outgoing_filetransfer():
+    return settings.get_boolean("notify-on-outgoing-filetransfer")
+
+
+def get_show_outgoing_filetransfer_progress():
+    return settings.get_boolean("show-outgoing-filetransfer-progress")
+    
+def get_show_incoming_filetransfer_progress():
+    return settings.get_boolean("show-incoming-filetransfer-progress")
+
