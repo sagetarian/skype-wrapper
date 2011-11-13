@@ -360,13 +360,22 @@ class FileTransfer:
     self.partner = skype_transfer.PartnerDisplayName
     self.partner_username = skype_transfer.PartnerHandle
 
+def isSkypeRunning():
+    output = commands.getoutput('ps -A | grep skype' )
+    output = output.replace('skype-wrapper', '')
+    return 'skype' in output.replace('indicator-skype', '')
+
 class SkypeBehaviour:
   # initialize skype
   def __init__(self):
     log("Initializing Skype API", INFO)
     self.skype = Skype4Py.Skype()
     self.skype.Timeout = 500
-    self.skype.Client.Start(Minimized=True)
+    
+    if not isSkypeRunning() and settings.get_start_skype_cmd_params():
+        os.system("skype "+settings.get_start_skype_cmd_params())
+    else:
+        self.skype.Client.Start(Minimized=True)
 
     log("Waiting for Skype Process", INFO)
     while True:

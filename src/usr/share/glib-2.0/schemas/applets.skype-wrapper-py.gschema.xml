@@ -37,5 +37,10 @@
       <default>true</default>
       <summary>Whether or not to show the incoming filetransfer progress in the unity launcher</summary>
     </key>
+    <key type="s" name="start-skype-cmd-params">
+      <default>''</default>
+      <summary>Set parameters to provide skype with in the commandline (only used if skype isn't running yet)</summary>
+      <description>e.g is "--dbpath=/path/to/profile"</description>
+    </key>
   </schema>
 </schemalist>

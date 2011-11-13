@@ -35,3 +35,5 @@ def get_show_outgoing_filetransfer_progress():
 def get_show_incoming_filetransfer_progress():
     return settings.get_boolean("show-incoming-file-progress")
 
+def get_start_skype_cmd_params():
+    return settings.get_string("start-skype-cmd-params")

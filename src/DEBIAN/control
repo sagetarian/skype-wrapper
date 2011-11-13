@@ -1,5 +1,5 @@
 Package: skype-wrapper
-Version: 0.5.1
+Version: 0.5.2.5
 Section: Office
 Priority: optional
 Architecture: all
@@ -24,6 +24,7 @@ Description: Makes Skype more native in Ubuntu
  * Add support for unity launcher (through skype-wrapper.desktop)
   * Unread message count on unity launcher
   * File transfer progress
+  
  Now you can change skype-wrappers behaviour in gsettings under apps/skype-wrapper
  * Change whether you want Ubuntu Desktop Notifications:
   * During startup when users are online
@@ -33,3 +34,4 @@ Description: Makes Skype more native in Ubuntu
   * Enable or Disable Notification Avatar
   * Enable or Disable Notifications for incoming or outgoing file transfers
   * Enable or Disable showing file trasnfer progress in the unity launcher or choose to show only outgoing / incoming progress
+  * Add CommandLine params to skype startup
