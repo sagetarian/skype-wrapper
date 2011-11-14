@@ -1,0 +1,34 @@
+Source: skype-wrapper
+Version: 0.5.2.6
+Section: misc
+Priority: optional
+Build-Depends: cdbs (>= 0.4.49), debhelper (>= 8), python (>= 2.4), python-support
+XS-Python-Version: >= 2.4
+Suggests: skype
+Maintainer: Shannon Black <shannon@netforge.co.za>
+Standards-Version: 3.9.2
+Homepage: https://github.com/sagetarian/skype-wrapper/
+Vcs-Git: git://git@github.com:sagetarian/skype-wrapper.git
+Vcs-Browser: https://sagetarian@github.com/sagetarian/skype-wrapper.git
+
+
+Package: skype-wrapper
+Depends: python-skype (>= 1.0.31), gtk2-engines-pixbuf, python, telepathy-mission-control-5, python-gobject, python-indicate, python-gtk2, python-dbus, python-imaging, ${python:Depends}
+Architecture: all
+Description: Integrate Skype with Unity
+ Makes Skype more native in Ubuntu by:
+ * Putting skype in messaging menu, and via this
+  * List all unread messages
+  * Open skype and bring focus to it
+  * On clicking an item remove item from skype missed chats
+  * Draw attention to the Messaging Menu
+  * Skype presence tied to Messaging Menu Presence (via telepathy)
+ * Supply libnotify Ubuntu Desktop Notifications when
+  * Users come Online or go Offline
+  * Users send messages
+  * Users transfer files to you or your transfers are accepted or completed by your skype contact
+ * Also Disables notifications if your Online Presence is Busy / Do Not Disturb
+ * Add support for unity launcher (through skype-wrapper.desktop)
+  * Unread message count on unity launcher
+  * File transfer progress
+ * Now you can change skype-wrappers behaviour in gsettings under apps/skype-wrapper

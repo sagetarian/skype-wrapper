@@ -1,0 +1,5 @@
+skype-wrapper (0ubuntu5-2.6) oneiric; urgency=low
+
+  * Initial PPA release (Closes: issue#4)  
+
+ -- Shannon Black <shannon@netforge.co.za>  Mon, 14 Nov 2011 18:22:49 +0200
