@@ -16,7 +16,7 @@ class InstallData(install_data):
     return
 
 setup(name='skype-wrapper',
-      version='0.5.2.7',
+      version='0.5.2.8',
       description='Integrate Skype with Unity',
       author='Shannon Black',
       author_email='shannon@netforge.co.za',

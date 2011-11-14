@@ -30,7 +30,7 @@
 # Documentation:
 # just start it
 
-
+import helpers
 import unitylauncher
 import indicate
 import gobject
@@ -638,6 +638,7 @@ class SkypeBehaviour:
   def checkOnlineStatus(self):
     try :
         log("Checking online presence", INFO)
+        
         new_telepathy_presence = self.getPresence()
         if new_telepathy_presence and new_telepathy_presence != self.telepathy_presence:
             self.telepathy_presence = new_telepathy_presence
@@ -659,6 +660,9 @@ class SkypeBehaviour:
     self.unread_conversations[id].skypereturn.Chat.OpenWindow()
     
   def setPresence(self, presence):
+    if not helpers.isInstalled('telepathy-mission-control-5'):
+        return
+        
     account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
                          '/org/freedesktop/Telepathy/AccountManager')
     accounts = account_manager.Get(
@@ -679,6 +683,9 @@ class SkypeBehaviour:
             dbus_interface='org.freedesktop.DBus.Properties')
   
   def getPresence(self) :
+    if not helpers.isInstalled('telepathy-mission-control-5'):
+        return None
+        
     account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
                          '/org/freedesktop/Telepathy/AccountManager')
     accounts = account_manager.Get(

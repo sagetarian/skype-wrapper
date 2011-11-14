@@ -1,9 +1,9 @@
 Package: skype-wrapper
-Version: 0ubuntu5-2.7
+Version: 0ubuntu5-2.8
 Architecture: all
 Maintainer: Shannon Black <shannon@netforge.co.za>
 Installed-Size: 212
-Depends: python-skype (>= 1.0.31), gtk2-engines-pixbuf, python (>= 2.4), telepathy-mission-control-5, python-gobject, python-indicate, python-gtk2, python-dbus, python-imaging, python-support (>= 0.90.0)
+Depends: python-skype (>= 1.0.31), gtk2-engines-pixbuf, python (>= 2.4), python-gobject, python-indicate, python-gtk2, python-dbus, python-imaging, python-support (>= 0.90.0)
 Suggests: skype
 Section: misc
 Priority: optional
