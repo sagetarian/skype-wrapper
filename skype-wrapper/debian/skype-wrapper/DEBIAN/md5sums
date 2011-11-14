@@ -1,12 +1,12 @@
 cf4e581eadb89a51cc2d4c72e31f6bbe  usr/bin/skype-wrapper
 0cfb02357e95ff721b491e63f9da2a78  usr/share/applications/skype-wrapper.desktop
-de8205e9af2be6d9a14120af96cb4788  usr/share/doc/skype-wrapper/changelog.Debian.gz
+34c3546babab7407fdcd997ec4c7ec57  usr/share/doc/skype-wrapper/changelog.Debian.gz
 e5e8b8f9d11a4de8d1455f339e41a540  usr/share/doc/skype-wrapper/copyright
+1f264913bbab529b6f0ea58d23417eaf  usr/share/glib-2.0/schemas/apps.skype-wrapper.gschema.xml
 f9bd44a82f63cf7f12320153b0ed43ca  usr/share/pixmaps/skype-wrapper.svg
-d7852ef3ed1465e573fa5d17100a3c92  usr/share/pyshared/skype_wrapper-0.5.2.5.egg-info
+7c1b5bcbfd6c3d3dd0363dac7c3cb47e  usr/share/pyshared/skype_wrapper-0.5.2.7.egg-info
 b6106eb1fb1520f7b6a6e0ed5845ad81  usr/share/python-support/skype-wrapper.private
-2ac90cde1cf12148224ee21704f78aad  usr/share/python-support/skype-wrapper.public
-1f264913bbab529b6f0ea58d23417eaf  usr/share/schemas/applets.skype-wrapper-py.gschema.xml
+ac2e732fd282da142457d70a6dd033e0  usr/share/python-support/skype-wrapper.public
 f0fb26960c9f882216b287d03719794f  usr/share/skype-wrapper/icons/skype-24.svg
 da8366b3d913e890c2ed246ac251f978  usr/share/skype-wrapper/icons/skype-wrapper-16.png
 763b8fdd8b0f03ef0d86d8b414eb8b4f  usr/share/skype-wrapper/icons/skype-wrapper-22.png

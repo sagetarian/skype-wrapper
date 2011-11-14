@@ -1,3 +1,9 @@
+skype-wrapper (0ubuntu5-2.7) oneiric; urgency=high
+
+  * Compile gschema after install
+
+ -- Shannon Black <shannon@netforge.co.za>  Mon, 14 Nov 2011 23:52:49 +0200
+ 
 skype-wrapper (0ubuntu5-2.6) oneiric; urgency=low
 
   * Initial PPA release (Closes: issue#4)  

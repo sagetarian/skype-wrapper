@@ -1,19 +1,18 @@
 Source: skype-wrapper
-Version: 0.5.2.6
 Section: misc
 Priority: optional
 Build-Depends: cdbs (>= 0.4.49), debhelper (>= 8), python (>= 2.4), python-support
 XS-Python-Version: >= 2.4
-Suggests: skype
 Maintainer: Shannon Black <shannon@netforge.co.za>
 Standards-Version: 3.9.2
 Homepage: https://github.com/sagetarian/skype-wrapper/
 Vcs-Git: git://git@github.com:sagetarian/skype-wrapper.git
 Vcs-Browser: https://sagetarian@github.com/sagetarian/skype-wrapper.git
 
-
+Version: 0.5.2.7
 Package: skype-wrapper
 Depends: python-skype (>= 1.0.31), gtk2-engines-pixbuf, python, telepathy-mission-control-5, python-gobject, python-indicate, python-gtk2, python-dbus, python-imaging, ${python:Depends}
+Suggests: skype
 Architecture: all
 Description: Integrate Skype with Unity
  Makes Skype more native in Ubuntu by:

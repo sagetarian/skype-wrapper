@@ -1,9 +1,54 @@
-skype-wrapper-0.5 for Debian
-----------------------------
+Added to 0.1 by Andreas Happe 2010:
+ * Add messages to Ubuntu Message Menu Indicator
 
-<this file describes information about the source package, see Debian policy
-manual section 4.14. You WILL either need to modify or delete this file>
+Added to 0.2:
+ * Support Group Chats
+ * Lists all unread messages
+ * Each message now opens relavent window
+ * Opening this minimizes Skype, and thereafter clicking it brings focus to skype
 
+Added to 0.3:
+ * update callback timeout
+ * remove items that have been marked as read within Skype
+ * derived the *.dbb avatar retrieval from http://cyrenity.wordpress.com/
+   by Author Ghulam Mustafa <mustafa.pk@gmail.com>
+ * listen for people coming and going offline and display their Full Name and Avatar
+ * use libnotify
+ * draw-attention
+ 
+Added to 0.4
+ * Skype presence tied to Messaging Menu Presence (via telepathy)
+ * Disables notifications if your Online Presence is Busy / Do Not Disturb
+ * Skype user avatars next to indicators in the messaging menu
+ * [Fix:] Opening message in skype removes the chat from the messaging menu
+ * gsettings
+  * Change whether you want Ubuntu Desktop Notifications:
+   * During startup when users are online
+   * When receiving a message
+   * When users come and go offline
+ * unity launcher support via skype-wrapper.desktop
+ 
+Added to 0.5
+ * First startup after login is faster (few seconds)
+ * Closes applet properly after quiting skype itself
+ * Add file transfer notifications
+ * Add file transfer progress to unity launcher
+ * Unity launcher counter includes file transfer and missed messages
+ * Unity launcher asks for attention when:
+  * Receiving messages
+  * file transfer requests being received or finishing
+ * [Fix:] Don't have to have the telepathy online presence menu enabled to work
+ * [Fix:] Add gtk2-engines-pixbuf dependency
+ * [Fix:] failed attempts for the main event listeners are recoverable
+ * gsettings
+  * Change whether you want Ubuntu Desktop Notifications:
+   * On Incoming or Outgoing messages
+  * Unity Launcher to display:
+   * Overall file progress based on incoming and / or outgoing files
+  * Choose to display avatars
+   * in Ubuntu Desktop Notications
+   * next to the indicators
+ * Updated package to say its in the Office section
 
-
-
+Shannon Black
+2011
