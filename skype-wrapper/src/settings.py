@@ -37,3 +37,9 @@ def get_show_incoming_filetransfer_progress():
 
 def get_start_skype_cmd_params():
     return settings.get_string("start-skype-cmd-params")
+    
+def get_list_of_silence():
+    return settings.get_string("list-of-silence")
+    
+def get_debug_log():
+    return settings.get_boolean("debug-log")

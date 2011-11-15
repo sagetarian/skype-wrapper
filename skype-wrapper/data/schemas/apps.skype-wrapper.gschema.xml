@@ -51,5 +51,15 @@
       <summary>Set parameters to provide skype with in the commandline (only used if skype isn't running yet)</summary>
       <description>e.g is "--dbpath=/path/to/profile"</description>
     </key>
+    <key type="s" name="list-of-silence">
+      <default>''</default>
+      <summary>List of Silence</summary>
+      <description>Disable notifications from certain users. Note that you need to supply the users username. (e.g ['sagetarian', 'bob'])</description>
+    </key>
+    <key type="b" name="debug-log">
+      <default>false</default>
+      <summary>Debug Logging</summary>
+      <description>Writes all events to a log file in ~/.skype-wrapper/log.txt</description>
+    </key>
   </schema>
 </schemalist>

@@ -107,9 +107,30 @@ DONOTDISTURB = False
 
 # only display errors
 LOGLEVEL = INFO
+LOGFILE = os.getenv("HOME")+"/.skype-wrapper/log.txt"
+
+def createLogFile(retry=None):
+    try :
+        if not os.path.isfile(LOGFILE):
+            f = open(LOGFILE, mode="w")
+            f.write("python-skype: "+helpers.version("python-skype")+"\n")
+            f.write("python-imaging: "+helpers.version("python-imaging")+"\n")
+            f.close()
+    except IOError:
+        if retry:
+            pass
+        else:
+            os.mkdir(os.getenv("HOME")+"/.skype-wrapper")
+            createLogFile(1)
+
+createLogFile()
 
 def log(message, level):
     if level >= LOGLEVEL:
+        if settings.get_debug_log():
+            f = open(LOGFILE, mode="a")
+            f.write(LOGTYPES[level] + message + "\n")
+            f.close()
         print LOGTYPES[level] + message
 
 # this is the high-level notification functionality
@@ -134,23 +155,29 @@ class NotificationServer:
     log("Display skype chat and remove missed chat from indicator", INFO)
     
     id = indicator.get_property("id")
-    indicator_name = indicator.get_property("indicator_name")
 
     self.skype.remove_conversation(int(id))
     self.skype.show_chat_windows(int(id))
     
-    del self.indicators
-    self.indicators = {}
-    for _id in self.skype.unread_conversations:
-        if not self.skype.unread_conversations[int(id)].Read:
-            self.show_indicator(self.skype.unread_conversations[int(id)])
-    unitylauncher.count(len(self.indicators) + self.skype.incomingfilecount)
+    self.reset_indicators()
+    
+  def show_conversation_quicklist(self, widget, data = None):
+    log("Quicklist showing conversation", INFO)
+    id = widget.property_get("id")
+
+    self.skype.remove_conversation(int(id))
+    self.skype.show_chat_windows(int(id))
+    
+    self.reset_indicators()
             
   def reset_indicators(self) :
     del self.indicators
     self.indicators = {}
     for _id in self.skype.unread_conversations:
         self.show_indicator(self.skype.unread_conversations[int(_id)])
+    unitylauncher.count(len(self.indicators) + self.skype.incomingfilecount)
+    unitylauncher.createUnreadMessageQuickList(self.skype.unread_conversations, self.show_conversation_quicklist)
+    unitylauncher.redrawQuicklist()  
     unitylauncher.count(len(self.indicators) + self.skype.incomingfilecount)
 
   def show_indicator(self, conversation):
@@ -221,6 +248,9 @@ class NotificationServer:
     
     if not fullname:
         fullname = username
+    
+    #doesn't work
+    unitylauncher.urgent(True)
     
     os.system(u'notify-send '+icon+'"'+group_chat_title+'" "'+conversation.skypereturn.Body+'"');
     
@@ -582,7 +612,7 @@ class SkypeBehaviour:
             for skypefriends in self.skype.Friends:
                 if skypefriends.OnlineStatus == "OFFLINE" and friend == skypefriends.Handle:
                     del self.usersonline[skypefriends.Handle]
-                    if self.cb_user_status_change:
+                    if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change:
                             self.cb_user_status_change(skypefriends.Handle, skypefriends.FullName, "went offline")
         
         #check who is now online
@@ -591,7 +621,7 @@ class SkypeBehaviour:
                 if not friend.Handle in self.usersonline:
                     if friend.OnlineStatus != "OFFLINE":
                         self.usersonline[friend.Handle] = friend
-                        if self.cb_user_status_change:
+                        if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change:
                             self.cb_user_status_change(friend.Handle, friend.FullName, "is online")
         
     except:
@@ -615,7 +645,6 @@ class SkypeBehaviour:
                     display_name = mesg.Chat.FriendlyName
                 except:
                     log("Couldn't get missed message Chat object", ERROR)
-                    print mesg.Chat
                     continue
                 if not id in self.unread_conversations:
                     conversation = Conversation(display_name, mesg.Timestamp, mesg.Sender.Handle, mesg)
@@ -623,16 +652,19 @@ class SkypeBehaviour:
                     self.unread_conversations[id] = conversation
                 else:
                     self.unread_conversations[id].add_timestamp(mesg.Timestamp)
-
-                self.logMessage(self.unread_conversations[id])
+                
+                if helpers.isUserBlacklisted(mesg.Sender.Handle):
+                    self.unread_conversations[id].Read = True
+                    
                 if not self.unread_conversations[id].Read:
+                    self.logMessage(self.unread_conversations[id])
                     self.cb_show_indicator(self.unread_conversations[id]) 
         if len(unread) != len(self.unread_conversations) and self.cb_read_within_skype:
             self.cb_read_within_skype()
             unitylauncher.urgent(True)
             unitylauncher.urgent(False)
-    except:
-        log("Checking unread messages failed", WARNING)
+    except Exception, e:
+        log("Checking unread messages failed: "+str(e), WARNING)
     return AppletRunning
   
   def checkOnlineStatus(self):

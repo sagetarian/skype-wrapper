@@ -26,8 +26,20 @@
 #
 
 import commands
+import time
+import settings
 
 def isInstalled(package_name):
     return not "not installed" in commands.getoutput("dpkg -s "+package_name)
     
-
+def version(package_name):
+    if not isInstalled(package_name):
+        return "not installed"
+    return commands.getoutput("dpkg -s "+package_name+" | grep Version:").replace("Version: ","")
+    
+def isChatBlacklisted(chat) :
+    # doesnt work
+    return len(chat.AlertString) > 0
+    
+def isUserBlacklisted(username) :
+    return "'"+username+"'" in settings.get_list_of_silence()
