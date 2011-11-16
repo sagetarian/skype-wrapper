@@ -1,3 +1,9 @@
+skype-wrapper (0ubuntu5-2.13) oneiric; urgency=low
+
+  * Fix unity quicklist bugs
+
+ -- Shannon Black <shannon@netforge.co.za>  Mon, 16 Nov 2011 10:11:49 +0200
+
 skype-wrapper (0ubuntu5-2.12) oneiric; urgency=low
 
   * Add unity quicklist for missed messages

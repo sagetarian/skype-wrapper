@@ -106,7 +106,7 @@ SKYPETOTELEPATHY = {
 DONOTDISTURB = False
 
 # only display errors
-LOGLEVEL = INFO
+LOGLEVEL = WARNING
 LOGFILE = os.getenv("HOME")+"/.skype-wrapper/log.txt"
 
 def createLogFile(retry=None):
@@ -207,7 +207,6 @@ class NotificationServer:
         
     if new:
         self.indicators[conversation.indicator_name].show()
-    return
     
     
   def user_online_status(self, username, fullname, online_text):
@@ -480,11 +479,15 @@ class SkypeBehaviour:
     #skype_name = self.name_mappings[display_name]
     #self.unread_conversations[display_name].skypereturn.Seen = True
     #del self.unread_conversations[id]
-    display_name = self.unread_conversations[int(id)].display_name
-    for _id in self.unread_conversations:
-        if display_name == self.unread_conversations[int(_id)].display_name:
-            self.unread_conversations[int(_id)].Read = True
-    self.unread_conversations[int(id)].Read = True
+    try :
+        display_name = self.unread_conversations[int(id)].display_name
+        for _id in self.unread_conversations:
+            if display_name == self.unread_conversations[int(_id)].display_name:
+                self.unread_conversations[int(_id)].Read = True
+        self.unread_conversations[int(id)].Read = True
+    except:
+        # tried to access a non existent conversation
+        pass
     return
    
   def logMessage(self, conversation):
@@ -599,8 +602,9 @@ class SkypeBehaviour:
             
         if oldincoming != self.incomingfilecount and self.cb_read_within_skype:
             self.cb_read_within_skype()  
-    except:
-        log("Checking file transfers failed", WARNING)
+    except Exception, e:
+        log("Checking file transfers failed ("+str(e)+")", WARNING)
+        raise
     return AppletRunning
    
   def checkOnlineUsers(self) :
@@ -689,7 +693,10 @@ class SkypeBehaviour:
     return AppletRunning
 
   def show_chat_windows(self, id):
-    self.unread_conversations[id].skypereturn.Chat.OpenWindow()
+    try :
+        self.unread_conversations[id].skypereturn.Chat.OpenWindow()
+    except Exception, e:
+        log("Couldn't open chat window ("+str(e)+")", WARNING)
     
   def setPresence(self, presence):
     if not helpers.isInstalled('telepathy-mission-control-5'):

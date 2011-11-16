@@ -9,7 +9,7 @@ Homepage: https://github.com/sagetarian/skype-wrapper/
 Vcs-Git: git://git@github.com:sagetarian/skype-wrapper.git
 Vcs-Browser: https://sagetarian@github.com/sagetarian/skype-wrapper.git
 
-Version: 0.5.2.12
+Version: 0.5.2.13
 Package: skype-wrapper
 Depends: python-skype (>= 1.0.31), gtk2-engines-pixbuf, python, python-gobject, python-indicate, python-gtk2, python-dbus, python-imaging, ${python:Depends}
 Suggests: skype
@@ -29,5 +29,6 @@ Description: Integrate Skype with Unity
  * Also Disables notifications if your Online Presence is Busy / Do Not Disturb
  * Add support for unity launcher (through skype-wrapper.desktop)
   * Unread message count on unity launcher
+  * Unread messages in Unity Quick List
   * File transfer progress
  * Now you can change skype-wrappers behaviour in gsettings under apps/skype-wrapper
