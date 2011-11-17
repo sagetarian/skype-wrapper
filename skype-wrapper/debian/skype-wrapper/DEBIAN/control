@@ -1,8 +1,8 @@
 Package: skype-wrapper
-Version: 0ubuntu5-2.8
+Version: 0ubuntu5-3.3
 Architecture: all
 Maintainer: Shannon Black <shannon@netforge.co.za>
-Installed-Size: 212
+Installed-Size: 220
 Depends: python-skype (>= 1.0.31), gtk2-engines-pixbuf, python (>= 2.4), python-gobject, python-indicate, python-gtk2, python-dbus, python-imaging, python-support (>= 0.90.0)
 Suggests: skype
 Section: misc
@@ -23,5 +23,6 @@ Description: Integrate Skype with Unity
  * Also Disables notifications if your Online Presence is Busy / Do Not Disturb
  * Add support for unity launcher (through skype-wrapper.desktop)
   * Unread message count on unity launcher
+  * Unread messages in Unity Quick List
   * File transfer progress
  * Now you can change skype-wrappers behaviour in gsettings under apps/skype-wrapper

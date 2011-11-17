@@ -51,5 +51,25 @@
       <summary>Set parameters to provide skype with in the commandline (only used if skype isn't running yet)</summary>
       <description>e.g is "--dbpath=/path/to/profile"</description>
     </key>
+    <key type="s" name="list-of-silence">
+      <default>''</default>
+      <summary>List of Silence</summary>
+      <description>Disable notifications from certain users. Note that you need to supply the users username. (e.g ['sagetarian', 'bob'])</description>
+    </key>
+    <key type="b" name="debug-log">
+      <default>false</default>
+      <summary>Debug Logging</summary>
+      <description>Writes all events to a log file in ~/.skype-wrapper/log.txt</description>
+    </key>
+    <key type="i" name="debug-level">
+      <default>1</default>
+      <summary>Debug Level</summary>
+      <description>Requires Restart. How much debug information you want. Lower numbers display the higher ones. i.e "info" debugging hides "verbose" messages but outputs "warning"s and "error"s (0 = Verbose, 1 = Info, 2 = Warning, 3 = Errors)</description>
+    </key>
+    <key type="s" name="cpu-percentage-limit">
+      <default>'7.5'</default>
+      <summary>CPU Limit (experimental)</summary>
+      <description>Requires Restart. This is the CPU limiter for indicator-skype to ensure that it doesn't consume too much CPU time. Increase this if the performance is bad</description>
+    </key>
   </schema>
 </schemalist>

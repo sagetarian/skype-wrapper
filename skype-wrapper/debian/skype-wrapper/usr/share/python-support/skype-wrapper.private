@@ -2,5 +2,6 @@
 /usr/share/skype-wrapper/settings.py
 /usr/share/skype-wrapper/shared.py
 /usr/share/skype-wrapper/unitylauncher.py
+/usr/share/skype-wrapper/helpers.py
 /usr/share/skype-wrapper/indicator-applet-skype.py
 /usr/share/skype-wrapper/postinst.py

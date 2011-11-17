@@ -65,9 +65,10 @@ FOCUSDEBUG = 4
 ERROR = 3
 WARNING = 2
 INFO = 1
+VERBOSE = 0
 
 LOGTYPES = {
-    0:"",
+    0:"VERBOSE: ",
     1:"INFO: ",
     2:"WARNING: ",
     3:"ERROR: ",
@@ -106,8 +107,9 @@ SKYPETOTELEPATHY = {
 DONOTDISTURB = False
 
 # only display errors
-LOGLEVEL = WARNING
+LOGLEVEL = settings.get_debug_level()
 LOGFILE = os.getenv("HOME")+"/.skype-wrapper/log.txt"
+CPULIMIT = settings.get_cpu_limit()
 
 def createLogFile(retry=None):
     try :
@@ -122,6 +124,10 @@ def createLogFile(retry=None):
         else:
             os.mkdir(os.getenv("HOME")+"/.skype-wrapper")
             createLogFile(1)
+
+def limitcpu():
+    log("Limiting CPU Usage", VERBOSE)
+    helpers.cpulimiter.limit(CPULIMIT)
 
 createLogFile()
 
@@ -602,6 +608,7 @@ class SkypeBehaviour:
             
         if oldincoming != self.incomingfilecount and self.cb_read_within_skype:
             self.cb_read_within_skype()  
+        limitcpu()
     except Exception, e:
         log("Checking file transfers failed ("+str(e)+")", WARNING)
         raise
@@ -628,8 +635,9 @@ class SkypeBehaviour:
                         if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change:
                             self.cb_user_status_change(friend.Handle, friend.FullName, "is online")
         
-    except:
-        log("Checking online status changing users failed", WARNING)
+        limitcpu()
+    except Exception, e:
+        log("Checking online status changing users failed ("+str(e)+")", WARNING)
     return AppletRunning
   
   def checkUnreadMessages(self):
@@ -667,6 +675,7 @@ class SkypeBehaviour:
             self.cb_read_within_skype()
             unitylauncher.urgent(True)
             unitylauncher.urgent(False)
+        limitcpu()
     except Exception, e:
         log("Checking unread messages failed: "+str(e), WARNING)
     return AppletRunning
@@ -688,8 +697,9 @@ class SkypeBehaviour:
             new_telepathy_presence = SKYPETOTELEPATHY[self.skype_presence]
             self.setPresence(new_telepathy_presence)
             self.telepathy_presence = new_telepathy_presence
-    except:
-        log("Checking online presence failed", WARNING)
+        limitcpu()
+    except Exception, e:
+        log("Checking online presence failed "+str(e), WARNING)
     return AppletRunning
 
   def show_chat_windows(self, id):
@@ -756,13 +766,13 @@ def runCheck():
         if 'defunct' in output:
             log("Skype instance is now defunct, exiting badly", ERROR)
             gtk.main_quit()
-    except:
-        log("Checking if skype is running failed", WARNING)
+        limitcpu()
+    except Exception, e:
+        log("Checking if skype is running failed: "+str(e), WARNING)
         
     return AppletRunning
 
 if __name__ == "__main__":
-  shared.set_proc_name('indicator-skype')
   os.chdir('/usr/share/skype-wrapper')
   
   skype = SkypeBehaviour();
