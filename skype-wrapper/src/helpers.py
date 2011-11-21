@@ -32,13 +32,30 @@ import time
 import settings
 import shared
 
+installed_packages = {}
+
 def isInstalled(package_name):
-    return not "not installed" in commands.getoutput("dpkg -s "+package_name)
+    global installed_packages
+    if package_name in installed_packages:
+        return installed_packages[package_name]
+    shortened = package_name
+    if len(package_name) > 5:
+        shortened = package_name[0:5]
+        
+    installed_packages[package_name] = len(commands.getoutput("dpkg -l "+package_name+" | grep \"ii  "+package_name+"\"")) > 0
+    return installed_packages[package_name]
+    
+def haveUnity():
+    return isInstalled('unity') or isInstalled('unity-2d')
     
 def version(package_name):
     if not isInstalled(package_name):
         return "not installed"
-    return commands.getoutput("dpkg -s "+package_name+" | grep Version:").replace("Version: ","")
+    description = commands.getoutput("dpkg -l "+package_name+" | grep \"ii  "+package_name+"\"")
+    clip = description[description.find(" "):].strip()
+    clip = clip[clip.find(" "):].strip()
+    clip = clip[:clip.find(" ")].strip()
+    return clip
     
 def isChatBlacklisted(chat) :
     # doesnt work
@@ -74,5 +91,3 @@ class CPULimiter:
 
 
 cpulimiter = CPULimiter("indicator-skype")
-#skypelimitwatcher = CPULimiter("skype")
-

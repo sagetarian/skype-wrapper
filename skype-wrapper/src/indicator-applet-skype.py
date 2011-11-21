@@ -31,9 +31,13 @@
 # just start it
 
 import helpers
-import unitylauncher
+
+if helpers.haveUnity():
+    import unitylauncher
+    
+    
+from gi.repository import GObject
 import indicate
-import gobject
 import gtk
 import Skype4Py
 import shared
@@ -44,6 +48,8 @@ import sys
 import commands
 import time
 import dbus
+import subprocess
+import shlex
 
 from PIL import Image
 import StringIO
@@ -117,6 +123,14 @@ def createLogFile(retry=None):
             f = open(LOGFILE, mode="w")
             f.write("python-skype: "+helpers.version("python-skype")+"\n")
             f.write("python-imaging: "+helpers.version("python-imaging")+"\n")
+            f.write("python-indicate: "+helpers.version("python-indicate")+"\n")
+            f.write("unity: "+helpers.version("unity")+"\n")
+            f.write("unity-2d: "+helpers.version("unity-2d")+"\n")
+            f.write("telepathy-mission-control-5: "+helpers.version("telepathy-mission-control-5")+"\n")
+            f.close()
+        else :
+            f = open(LOGFILE, mode="w")
+            f.write("------------------------------------------\n")
             f.close()
     except IOError:
         if retry:
@@ -125,9 +139,13 @@ def createLogFile(retry=None):
             os.mkdir(os.getenv("HOME")+"/.skype-wrapper")
             createLogFile(1)
 
+CPUPRIORITY = 0
+
 def limitcpu():
+    return
     log("Limiting CPU Usage", VERBOSE)
-    helpers.cpulimiter.limit(CPULIMIT)
+    if not CPUPRIORITY:
+        helpers.cpulimiter.limit(CPULIMIT)
 
 createLogFile()
 
@@ -181,10 +199,11 @@ class NotificationServer:
     self.indicators = {}
     for _id in self.skype.unread_conversations:
         self.show_indicator(self.skype.unread_conversations[int(_id)])
-    unitylauncher.count(len(self.indicators) + self.skype.incomingfilecount)
-    unitylauncher.createUnreadMessageQuickList(self.skype.unread_conversations, self.show_conversation_quicklist)
-    unitylauncher.redrawQuicklist()  
-    unitylauncher.count(len(self.indicators) + self.skype.incomingfilecount)
+    if helpers.haveUnity():
+        unitylauncher.count(len(self.indicators) + self.skype.incomingfilecount)
+        unitylauncher.createUnreadMessageQuickList(self.skype.unread_conversations, self.show_conversation_quicklist)
+        unitylauncher.redrawQuicklist()  
+        unitylauncher.count(len(self.indicators) + self.skype.incomingfilecount)
 
   def show_indicator(self, conversation):
     log("Updating Indicator", INFO)
@@ -206,8 +225,7 @@ class NotificationServer:
         user_avatar = SkypeAvatar(conversation.skypereturn.Sender.Handle)
     if user_avatar and user_avatar.filename:
         bitmapVersion = user_avatar.get_bitmap_version()
-        if bitmapVersion != self.indicators[conversation.indicator_name].get_property("icon"):
-            self.indicators[conversation.indicator_name].set_property("icon", str(user_avatar.get_bitmap_version()))
+        self.indicators[conversation.indicator_name].set_property("icon", str(user_avatar.get_bitmap_version()))
     else:
         self.indicators[conversation.indicator_name].set_property("icon", "")
         
@@ -249,13 +267,12 @@ class NotificationServer:
             icon = '-i "'+avatar.filename+'" '
         else:
             icon = '-i "/usr/share/skype-wrapper/icons/skype-wrapper-48.svg" '
-    fullname = conversation.skypereturn.Sender.FullName
     
-    if not fullname:
-        fullname = username
-    
-    #doesn't work
-    unitylauncher.urgent(True)
+    if helpers.haveUnity():
+        unitylauncher.count(len(self.indicators) + self.skype.incomingfilecount)
+        unitylauncher.createUnreadMessageQuickList(self.skype.unread_conversations, self.show_conversation_quicklist)
+        unitylauncher.redrawQuicklist()  
+        unitylauncher.count(len(self.indicators) + self.skype.incomingfilecount)
     
     os.system(u'notify-send '+icon+'"'+group_chat_title+'" "'+conversation.skypereturn.Body+'"');
     
@@ -283,17 +300,17 @@ class NotificationServer:
 class SkypeAvatar:
   def __init__(self, username):
     userfiles = {
-        "user256", 
-        "user1024", 
-        "user4096", 
-        "user16384", 
-        "user32768", 
-        "user65536",
-        "profile256", 
-        "profile1024", 
-        "profile4096", 
-        "profile16384", 
-        "profile32768"
+        "user256":True, 
+        "user1024":True, 
+        "user4096":True,  
+        "user16384":True,  
+        "user32768":True,  
+        "user65536":True, 
+        "profile256":True,  
+        "profile1024":True,  
+        "profile4096":True,  
+        "profile16384":True,  
+        "profile32768":True
     }
     
     self.path = os.getenv("HOME")+"/.thumbnails/normal/"
@@ -401,16 +418,35 @@ def isSkypeRunning():
     return 'skype' in output.replace('indicator-skype', '')
 
 class SkypeBehaviour:
+  def MessageStatus(self, message, status): 
+    self.messageupdatepending = True
+    
+  def OnlineStatus(self, message, status): 
+    self.onlineuserupdatepending = True
+    self.onlinepresenceupdatepending = True
+    
+  def FileTransferStatusChanged(self, message, status): 
+    self.filetransferupdatepending = True
+    
   # initialize skype
   def __init__(self):
     log("Initializing Skype API", INFO)
     self.skype = Skype4Py.Skype()
+    
+    #register events
+    self.skype.RegisterEventHandler('MessageStatus', self.MessageStatus)
+    self.skype.RegisterEventHandler('OnlineStatus', self.OnlineStatus)
+    self.skype.RegisterEventHandler('FileTransferStatusChanged', self.FileTransferStatusChanged)
+    
     self.skype.Timeout = 500
     
-    if not isSkypeRunning() and settings.get_start_skype_cmd_params():
-        os.system("skype "+settings.get_start_skype_cmd_params())
-    else:
-        self.skype.Client.Start(Minimized=True)
+    if not isSkypeRunning():
+        if settings.get_start_skype_cmd_params():
+            log("Starting Skype with extra params", INFO)
+            subprocess.Popen(shlex.split("skype "+settings.get_start_skype_cmd_params()))
+        else:
+            log("Starting Skype", INFO)
+            self.skype.Client.Start(Minimized=True)
 
     log("Waiting for Skype Process", INFO)
     while True:
@@ -420,16 +456,18 @@ class SkypeBehaviour:
 
     log("Attaching skype-wrapper to Skype process", INFO)
     while True:
-        time.sleep(4)
         try:
             self.skype.Attach(Wait=True)
             break
         except:
             # we tell the parent process that the skype couldn't attached
+            log("Failed to attach skype-wrapper to Skype process", WARNING)
             sys.exit(2) 
                         
     log("Attached complete", INFO)
-    time.sleep(2)
+    
+    #self.skype.Timeout = 30000
+    
     self.skype.Client.Minimize()
     self.name_mappings = {}
     self.unread_conversations = {}
@@ -458,10 +496,18 @@ class SkypeBehaviour:
     
     if not settings.get_notify_on_initializing():
         self.initOnlineUserList()
-    gobject.timeout_add(CB_INTERVALS, self.checkUnreadMessages)
-    gobject.timeout_add(CB_INTERVALS, self.checkOnlineUsers)
-    gobject.timeout_add(CB_INTERVALS, self.checkOnlineStatus)
-    gobject.timeout_add(CB_INTERVALS, self.checkFileTransfers)
+        
+    self.messageupdatepending = True
+    GObject.timeout_add(CB_INTERVALS, self.checkUnreadMessages)
+    
+    self.onlineuserupdatepending = True
+    GObject.timeout_add(CB_INTERVALS, self.checkOnlineUsers)
+    
+    self.onlinepresenceupdatepending = True
+    GObject.timeout_add(CB_INTERVALS, self.checkOnlineStatus)
+    
+    self.filetransferupdatepending = True
+    GObject.timeout_add(CB_INTERVALS, self.checkFileTransfers)
 
   def SetShowConversationCallback(self, func):
     self.cb_show_conversation = func
@@ -494,7 +540,6 @@ class SkypeBehaviour:
     except:
         # tried to access a non existent conversation
         pass
-    return
    
   def logMessage(self, conversation):
     if not conversation:
@@ -505,7 +550,6 @@ class SkypeBehaviour:
         self.conversations[id] = conversation
         if self.cb_log_message:
             self.cb_log_message(conversation)
-    return
    
   def initOnlineUserList(self) :
     if self.skype.Friends:
@@ -513,9 +557,11 @@ class SkypeBehaviour:
             if not friend.Handle in self.usersonline:
                 if friend.OnlineStatus != "OFFLINE":
                     self.usersonline[friend.Handle] = friend.FullName
-    return
   
   def checkFileTransfers(self) :
+    if not self.filetransferupdatepending:
+        return AppletRunning
+    self.filetransferupdatepending = False
     try : 
         log("Checking file transfers", INFO)
         for transfer in self.skype.ActiveFileTransfers:
@@ -538,15 +584,18 @@ class SkypeBehaviour:
             if str(v.type) == "INCOMING":
                 if "NEW" in str(v.status):
                     self.incomingfilecount = self.incomingfilecount + 1
-                    unitylauncher.urgent(True)
+                    if helpers.haveUnity():
+                        unitylauncher.urgent(True)
                 else:
-                    unitylauncher.urgent(False)
+                    if helpers.haveUnity():
+                        unitylauncher.urgent(False)
                 
                 if settings.get_show_incoming_filetransfer_progress():
                     if "TRANSFERRING" in str(v.status) or "PAUSED" in str(v.status):
                         self.filetransfer['total'] = self.filetransfer['total'] + v.skype_transfer.FileSize
                         self.filetransfer['current'] = self.filetransfer['current'] + v.skype_transfer.BytesTransferred
                         self.incomingfilecount = self.incomingfilecount + 1
+                        self.filetransferupdatepending = True
                 
                     
                 if not str(v.status) in v.notifications:
@@ -558,6 +607,7 @@ class SkypeBehaviour:
                         self.filetransfers[k].notifications[str(v.status)] = str(v.status)
                         if self.cb_log_transfer:
                             self.cb_log_transfer(v, "* " + v.partner+ " is busy sending you a file")
+                        self.filetransferupdatepending = True
                     if "CANCELLED" in v.status:
                         self.filetransfers[k].notifications[str(v.status)] = str(v.status)
                         if self.cb_log_transfer:
@@ -566,14 +616,16 @@ class SkypeBehaviour:
                         self.filetransfers[k].notifications[str(v.status)] = str(v.status)
                         if self.cb_log_transfer:
                             self.cb_log_transfer(v, "* " + v.partner+ " finished sending you a file")
-                        unitylauncher.urgent(True)
+                        if helpers.haveUnity():
+                            unitylauncher.urgent(True)
                     if "FAILED" in v.status:
                         self.filetransfers[k].notifications[str(v.status)] = str(v.status)
                         if self.cb_log_transfer:
                             self.cb_log_transfer(v, "* " + v.partner+ " failed to send you a file")
                 else:
                     if "COMPLETED" in v.status:
-                        unitylauncher.urgent(False)
+                        if helpers.haveUnity():
+                            unitylauncher.urgent(False)
                         
             if str(v.type) == "OUTGOING":                
                 if settings.get_show_outgoing_filetransfer_progress():
@@ -581,12 +633,14 @@ class SkypeBehaviour:
                         self.filetransfer['total'] = self.filetransfer['total'] + v.skype_transfer.FileSize
                         self.filetransfer['current'] = self.filetransfer['current'] + v.skype_transfer.BytesTransferred
                         self.incomingfilecount = self.incomingfilecount + 1
+                        self.filetransferupdatepending = True
                         
                 if not str(v.status) in v.notifications:
                     if "TRANSFERRING" in v.status:
                         self.filetransfers[k].notifications[str(v.status)] = str(v.status)
                         if self.cb_log_transfer:
                             self.cb_log_transfer(v, "* " + v.partner+ " is busy receiving your file")
+                        self.filetransferupdatepending = True
                     if "CANCELLED" in v.status:
                         self.filetransfers[k].notifications[str(v.status)] = str(v.status)
                         if self.cb_log_transfer:
@@ -602,19 +656,24 @@ class SkypeBehaviour:
                
         if self.filetransfer['total'] > -1:
             currentprogress = float(self.filetransfer['current']) / float(self.filetransfer['total'])
-            unitylauncher.progress(currentprogress)
+            if helpers.haveUnity():
+                unitylauncher.progress(currentprogress)
         else:
-            unitylauncher.progress(-1)
+            if helpers.haveUnity():
+                unitylauncher.progress(-1)
             
         if oldincoming != self.incomingfilecount and self.cb_read_within_skype:
             self.cb_read_within_skype()  
-        limitcpu()
+        #limitcpu()
     except Exception, e:
         log("Checking file transfers failed ("+str(e)+")", WARNING)
         raise
     return AppletRunning
    
   def checkOnlineUsers(self) :
+    if not self.onlineuserupdatepending:
+        return AppletRunning
+    self.onlineuserupdatepending = False
     try :
         log("Checking online status changing users", INFO)
         #check who is now offline
@@ -623,7 +682,7 @@ class SkypeBehaviour:
             for skypefriends in self.skype.Friends:
                 if skypefriends.OnlineStatus == "OFFLINE" and friend == skypefriends.Handle:
                     del self.usersonline[skypefriends.Handle]
-                    if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change:
+                    if not helpers.isUserBlacklisted(friend) and self.cb_user_status_change:
                             self.cb_user_status_change(skypefriends.Handle, skypefriends.FullName, "went offline")
         
         #check who is now online
@@ -641,6 +700,10 @@ class SkypeBehaviour:
     return AppletRunning
   
   def checkUnreadMessages(self):
+    if not self.messageupdatepending:
+        return AppletRunning
+    self.messageupdatepending = False
+    
     try :
         log("Checking unread messages", INFO)
         missedmessages = []
@@ -650,6 +713,7 @@ class SkypeBehaviour:
                 
         unread = self.unread_conversations
         self.unread_conversations = {}
+        logged = False
         if missedmessages and self.cb_show_indicator:
             for mesg in reversed(missedmessages):
                 try:
@@ -671,11 +735,19 @@ class SkypeBehaviour:
                 if not self.unread_conversations[id].Read:
                     self.logMessage(self.unread_conversations[id])
                     self.cb_show_indicator(self.unread_conversations[id]) 
-        if len(unread) != len(self.unread_conversations) and self.cb_read_within_skype:
-            self.cb_read_within_skype()
-            unitylauncher.urgent(True)
-            unitylauncher.urgent(False)
-        limitcpu()
+        
+        if len(unread) != len(self.unread_conversations):
+            CPUPRIORITY = 1
+            
+            if self.cb_read_within_skype:
+                self.cb_read_within_skype()
+                
+            if helpers.haveUnity():
+                unitylauncher.urgent(True)
+                unitylauncher.urgent(False)
+            
+        #limitcpu()
+        CPUPRIORITY = 0
     except Exception, e:
         log("Checking unread messages failed: "+str(e), WARNING)
     return AppletRunning
@@ -691,6 +763,11 @@ class SkypeBehaviour:
             self.skype_presence = SKYPESTATUS[self.telepathy_presence]
             return AppletRunning
             
+        if not self.onlinepresenceupdatepending:
+            return AppletRunning
+            
+        self.onlinepresenceupdatepending = False
+        
         new_skype_presence = self.skype.CurrentUserStatus
         if self.skype_presence != new_skype_presence:
             self.skype_presence = new_skype_presence
@@ -700,6 +777,7 @@ class SkypeBehaviour:
         limitcpu()
     except Exception, e:
         log("Checking online presence failed "+str(e), WARNING)
+        raise
     return AppletRunning
 
   def show_chat_windows(self, id):
@@ -709,7 +787,7 @@ class SkypeBehaviour:
         log("Couldn't open chat window ("+str(e)+")", WARNING)
     
   def setPresence(self, presence):
-    if not helpers.isInstalled('telepathy-mission-control-5'):
+    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('ps -A | grep mission-control' ):
         return
         
     account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
@@ -721,6 +799,7 @@ class SkypeBehaviour:
         if str(account_path) == '/org/freedesktop/Telepathy/Account/ring/tel/ring':
             continue
         account = bus.get_object('org.freedesktop.Telepathy.AccountManager', account_path)
+        #account.Set('org.freedesktop.Telepathy.Account', 'Enabled', dbus.Struct((dbus.Boolean(True)), signature='b'), dbus_interface='org.freedesktop.DBus.Properties')
         enabled = account.Get('org.freedesktop.Telepathy.Account', 'Enabled')
         if not enabled:
             continue
@@ -732,7 +811,7 @@ class SkypeBehaviour:
             dbus_interface='org.freedesktop.DBus.Properties')
   
   def getPresence(self) :
-    if not helpers.isInstalled('telepathy-mission-control-5'):
+    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('ps -A | grep mission-control' ):
         return None
         
     account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
@@ -760,7 +839,7 @@ def runCheck():
         output = output.replace('skype-wrapper','')
         output = output.replace('indicator-skype','')
         
-        if 'skype' not in output.replace('skype-wrapper',''):
+        if 'skype' not in output:
             log("Skype instance has terminated, exiting", WARNING)
             gtk.main_quit()
         if 'defunct' in output:
@@ -777,7 +856,7 @@ if __name__ == "__main__":
   
   skype = SkypeBehaviour();
   server = NotificationServer()
-  gobject.timeout_add(CB_INTERVALS, runCheck)
+  GObject.timeout_add(CB_INTERVALS, runCheck)
   
   skype.SetShowConversationCallback(server.show_conversation)
   skype.SetShowIndicatorCallback(server.show_indicator)

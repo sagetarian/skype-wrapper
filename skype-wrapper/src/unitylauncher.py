@@ -101,3 +101,4 @@ def redrawQuicklist() :
     global launcher
     launcher.redrawQuicklist()
 
+

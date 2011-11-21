@@ -1,23 +1,4 @@
-skype-wrapper (0ubuntu5-4.3~maverick1) maverick; urgency=low
-
-  * Experimental Maverick support
-  * fix for commandline param
-  * internationilize helpers.isInstalled()
-  * internationilize helpers.version()
-
- -- Shannon Black <shannon@netforge.co.za>  Mon, 17 Nov 2011 10:11:49 +0200
-
-skype-wrapper (0ubuntu5-4.2~maverick1) maverick; urgency=low
-
-  * Experimental Maverick support
-  * Remove dependency on unity
-  * fix online presence bug
-  * fix file transfer bug
-  * attempt a fix for commandline param
-
- -- Shannon Black <shannon@netforge.co.za>  Mon, 17 Nov 2011 10:11:49 +0200
- 
-skype-wrapper (0ubuntu5-4~maverick1) maverick; urgency=low
+skype-wrapper (0ubuntu5-4) oneiric; urgency=low
 
   * Set interval check back to 500ms
   * Don't do skype calls unless there is an update
@@ -25,20 +6,20 @@ skype-wrapper (0ubuntu5-4~maverick1) maverick; urgency=low
 
  -- Shannon Black <shannon@netforge.co.za>  Mon, 17 Nov 2011 10:11:49 +0200
 
-skype-wrapper (0ubuntu5-3.5~maverick1) maverick; urgency=low
+skype-wrapper (0ubuntu5-3.5) oneiric; urgency=low
 
   * Set interval check to 2000ms
   * Removed cpulimiter in certain sections of code
 
  -- Shannon Black <shannon@netforge.co.za>  Mon, 17 Nov 2011 10:11:49 +0200
 
-skype-wrapper (0ubuntu5-3.4~maverick1) maverick; urgency=low
+skype-wrapper (0ubuntu5-3.4) oneiric; urgency=low
 
   * Remove cpu load limit for a more stable release on the PPA
 
  -- Shannon Black <shannon@netforge.co.za>  Mon, 16 Nov 2011 10:11:49 +0200
 
-skype-wrapper (0ubuntu5-3.3~maverick1) maverick; urgency=low
+skype-wrapper (0ubuntu5-3.3) oneiric; urgency=low
 
   * Limit CPU Load
   * Add gsetting to increase cpu load limit (experimental)
@@ -46,20 +27,20 @@ skype-wrapper (0ubuntu5-3.3~maverick1) maverick; urgency=low
 
  -- Shannon Black <shannon@netforge.co.za>  Mon, 16 Nov 2011 10:11:49 +0200
 
-skype-wrapper (0ubuntu5-3~maverick1) maverick; urgency=low
+skype-wrapper (0ubuntu5-3) oneiric; urgency=low
 
   * Fix unity quicklist bugs
 
  -- Shannon Black <shannon@netforge.co.za>  Mon, 16 Nov 2011 10:11:49 +0200
 
-skype-wrapper (0ubuntu5-2.12~maverick1) maverick; urgency=low
+skype-wrapper (0ubuntu5-2.12) oneiric; urgency=low
 
   * Add unity quicklist for missed messages
   * Add event logging to gsettings so we can log to text files
 
  -- Shannon Black <shannon@netforge.co.za>  Mon, 15 Nov 2011 23:27:49 +0200
  
-skype-wrapper (0ubuntu5-2.10~maverick1) maverick; urgency=low
+skype-wrapper (0ubuntu5-2.10) oneiric; urgency=low
 
   * Initial PPA release (Closes: issue#4)  
   * Compile gschema after install
