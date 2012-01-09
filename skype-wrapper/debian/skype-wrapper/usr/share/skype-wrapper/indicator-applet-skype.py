@@ -215,23 +215,21 @@ class NotificationServer:
         self.indicators[conversation.indicator_name].show()
     
     
-  def user_online_status(self, username, fullname, online_text):
-    log("User "+username+" "+online_text, INFO)
-    if not settings.get_notify_on_useronlinestatuschange() or self.skype.skype_presence == Skype4Py.cusDoNotDisturb or username == 'echo123':
+  def user_online_status(self, user, online_text):
+    name = user.DisplayName or user.FullName or user.Handle
+    log("User "+name+" "+online_text, INFO)
+    if not settings.get_notify_on_useronlinestatuschange() or self.skype.skype_presence == Skype4Py.cusDoNotDisturb or user.Handle == 'echo123':
         return
         
     icon = ""
     if settings.get_display_notification_avatars():
-        avatar = SkypeAvatar(username)
+        avatar = SkypeAvatar(user.Handle)
         if avatar.filename:
             icon = '-i "'+avatar.filename+'" '
         else:
             icon = '-i "/usr/share/skype-wrapper/icons/skype-wrapper-48.svg" '
     
-    if not fullname:
-        fullname = username
-        
-    os.system('notify-send '+icon+'"'+fullname+'" "'+online_text+'"');
+    os.system('notify-send --urgency low '+icon+'"'+name+'" "'+online_text+'"');
   
   def new_message(self, conversation):
     if not settings.get_notify_on_messagerecieve() or self.skype.skype_presence == Skype4Py.cusDoNotDisturb:
@@ -624,7 +622,7 @@ class SkypeBehaviour:
                 if skypefriends.OnlineStatus == "OFFLINE" and friend == skypefriends.Handle:
                     del self.usersonline[skypefriends.Handle]
                     if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change:
-                            self.cb_user_status_change(skypefriends.Handle, skypefriends.FullName, "went offline")
+                            self.cb_user_status_change(skypefriends, "went offline")
         
         #check who is now online
         if self.skype.Friends:
@@ -633,7 +631,7 @@ class SkypeBehaviour:
                     if friend.OnlineStatus != "OFFLINE":
                         self.usersonline[friend.Handle] = friend
                         if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change:
-                            self.cb_user_status_change(friend.Handle, friend.FullName, "is online")
+                            self.cb_user_status_change(friend, "is online")
         
         limitcpu()
     except Exception, e:
