@@ -71,5 +71,10 @@
       <summary>CPU Limit (experimental)</summary>
       <description>Requires Restart. This is the CPU limiter for indicator-skype to ensure that it doesn't consume too much CPU time. Increase this if the performance is bad</description>
     </key>
+    <key type="b" name="use-global-status">
+      <default>true</default>
+      <summary>Use global status</summary>
+      <description>Set Skype status from Messaging Menu (true) or independently (false).</description>
+    </key>
   </schema>
 </schemalist>
