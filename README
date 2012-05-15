@@ -50,10 +50,13 @@ Added to 0.5
    * next to the indicators
  * Updated package to say its in the Office section
  * [Fix:] Added transport protocol to the skype start up, should fix some issues during load up [david-barbion]
+ * Add option to disable telepathy global presence in gsettings [Andrei Shevchuk]
+ * [Fix:] issue if telepathy mission control not running [Andrei Shevchuk]
 
 Shannon Black
 2011
 
 Contributions from:
-- Nikolay Yordanov
-- David Barbion
+- Nikolay Yordanov - https://github.com/nyordanov
+- David Barbion - https://github.com/david-barbion
+- Andrei Shevchuk - https://github.com/shvchk
