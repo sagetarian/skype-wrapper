@@ -49,6 +49,11 @@ Added to 0.5
    * in Ubuntu Desktop Notications
    * next to the indicators
  * Updated package to say its in the Office section
+ * [Fix:] Added transport protocol to the skype start up, should fix some issues during load up [david-barbion]
 
 Shannon Black
 2011
+
+Contributions from:
+- Nikolay Yordanov
+- David Barbion

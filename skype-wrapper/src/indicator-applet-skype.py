@@ -62,7 +62,6 @@ bus = dbus.SessionBus()
 def do_nothing(indicator):
     True
     
-    
 AppletRunning = True
     
 CB_INTERVALS = 500
@@ -233,30 +232,31 @@ class NotificationServer:
         self.indicators[conversation.indicator_name].show()
     
     
-  def user_online_status(self, username, fullname, online_text):
-    log("User "+username+" "+online_text, INFO)
-    if not settings.get_notify_on_useronlinestatuschange() or self.skype.skype_presence == Skype4Py.cusDoNotDisturb or username == 'echo123':
+  def user_online_status(self, user, online_text):
+    name = user.DisplayName or user.FullName or user.Handle
+    log("User "+name+" "+online_text, INFO)
+    if not settings.get_notify_on_useronlinestatuschange() or self.skype.skype_presence == Skype4Py.cusDoNotDisturb or user.Handle == 'echo123':
         return
         
     icon = ""
     if settings.get_display_notification_avatars():
-        avatar = SkypeAvatar(username)
+        avatar = SkypeAvatar(user.Handle)
         if avatar.filename:
-            icon = '-i "'+avatar.filename+'" '
+            icon = avatar.filename
         else:
-            icon = '-i "/usr/share/skype-wrapper/icons/skype-wrapper-48.svg" '
-    
-    if not fullname:
-        fullname = username
-        
-    os.system('notify-send '+icon+'"'+fullname+'" "'+online_text+'"');
+            icon = "/usr/share/skype-wrapper/icons/skype-wrapper-48.svg"
+      
+    helpers.notify(name, online_text, icon, "online://"+user.Handle, False, False)  
   
   def new_message(self, conversation):
     if not settings.get_notify_on_messagerecieve() or self.skype.skype_presence == Skype4Py.cusDoNotDisturb:
         return
     #conversation.skypereturn.Chat.Type == Skype4Py.chatTypeMultiChat and  
-    if conversation.skypereturn.Chat.Topic:
-        group_chat_title = unicode(conversation.skypereturn.Sender.FullName + " ► " + conversation.skypereturn.Chat.Topic)
+    conversation.display_name = conversation.skypereturn.Chat.Topic or conversation.display_name
+    name = conversation.skypereturn.Sender.DisplayName or conversation.skypereturn.Sender.FullName or conversation.skypereturn.Sender.Handle
+
+    if len(conversation.skypereturn.Chat.Members) > 2:
+        group_chat_title = unicode(name + " ► " + conversation.display_name)
     else:
         group_chat_title = unicode(conversation.display_name)
         
@@ -264,9 +264,9 @@ class NotificationServer:
     if settings.get_display_notification_avatars():
         avatar = SkypeAvatar(conversation.skypereturn.Sender.Handle)
         if avatar.filename:
-            icon = '-i "'+avatar.filename+'" '
+            icon = avatar.filename
         else:
-            icon = '-i "/usr/share/skype-wrapper/icons/skype-wrapper-48.svg" '
+            icon = "/usr/share/skype-wrapper/icons/skype-wrapper-48.svg"
     
     if helpers.haveUnity():
         unitylauncher.count(len(self.indicators) + self.skype.incomingfilecount)
@@ -274,7 +274,7 @@ class NotificationServer:
         unitylauncher.redrawQuicklist()  
         unitylauncher.count(len(self.indicators) + self.skype.incomingfilecount)
     
-    os.system(u'notify-send '+icon+'"'+group_chat_title+'" "'+conversation.skypereturn.Body+'"');
+    helpers.notify(group_chat_title, conversation.skypereturn.Body, icon, group_chat_title, False, False, conversation.skypereturn.Chat.Topic)  
     
   def file_transfer_event(self, transfer, text):
     if self.skype.skype_presence == Skype4Py.cusDoNotDisturb:
@@ -290,11 +290,11 @@ class NotificationServer:
     if settings.get_display_notification_avatars():
         avatar = SkypeAvatar(transfer.partner_username)
         if avatar.filename:
-            icon = '-i "'+avatar.filename+'" '
+            icon = avatar.filename
         else:
-            icon = '-i "/usr/share/skype-wrapper/icons/skype-wrapper-48.svg" '
+            icon = "/usr/share/skype-wrapper/icons/skype-wrapper-48.svg"
             
-    os.system(u'notify-send --urgency critical '+icon+'"File Transfer" "'+text+'"')
+    helpers.notify("File Transfer", text, icon, "filetransfer"+transfer.partner_username, True, True)  
 
 # class for retrieving user avatars
 class SkypeAvatar:
@@ -428,15 +428,98 @@ class SkypeBehaviour:
   def FileTransferStatusChanged(self, message, status): 
     self.filetransferupdatepending = True
     
+  def CallStatus(self, call, status): 
+    if status == "RINGING":
+        self.call_ringing = self.call_ringing + 1
+        self.calls[call.PartnerHandle] = call
+    else:
+        self.call_ringing = self.call_ringing - 1
+    
+    #if status == "INPROGRESS":LOCALHOLD
+    
+    if (status == "MISSED" or status == "FINISHED") and call.PartnerHandle in self.calls:
+        del self.calls[call.PartnerHandle]
+        
+    unitylauncher.createCallsQuickList(self.calls, self.cb_call_action)
+    unitylauncher.redrawQuicklist()  
+    
+    # wiggle the launcher
+    if self.call_ringing > 0 and not self.calls_ringing_started:
+        unitylauncher.urgent()
+        GObject.timeout_add(1000, self.calls_ringing)
+        
+    icon = ""
+    if settings.get_display_notification_avatars():
+        avatar = SkypeAvatar(call.PartnerHandle)
+        if avatar.filename:
+            icon = avatar.filename
+        else:
+            icon = "/usr/share/skype-wrapper/icons/skype-wrapper-48.svg"
+    
+    partner = call.PartnerDisplayName or call.PartnerHandle
+    notification = ""
+    if status == "RINGING":
+        notification = "* Incoming call";
+    if status == "INPROGRESS":
+        notification = "* Call started";
+    if status == "MISSED":
+        notification = "* Missed call";
+    if status == "FINISHED":
+        notification = "* Call ended";
+    if status == "REMOTEHOLD":
+        notification = "* Call put on hold";
+    if notification:
+        helpers.notify(partner, notification, icon, "call://"+call.PartnerHandle, True, True)  
+    
+  def cb_call_action(self, widget, data = None):
+    log("Quicklist showing conversation", INFO)
+    id = widget.property_get("id")
+    action = widget.property_get("action")
+    
+    if not id in self.calls:
+        return
+    
+    if action == 'HOLD':
+        self.calls[id].Hold()
+    if action == 'FINISH':
+        self.calls[id].Finish()
+    if action == 'ANSWER':
+        self.calls[id].Answer()
+    if action == 'RESUME':
+        self.calls[id].Resume()
+    if action == 'VIDEOOUT':
+        self.calls[id].StartVideoSend()
+    if action == 'VIDEOIN':
+        self.calls[id].StartVideoReceive()
+    if action == 'ENDVIDEOOUT':
+        self.calls[id].StopVideoSend()
+    if action == 'ENDVIDEOIN':
+        self.calls[id].StopVideoReceive()
+        
+    unitylauncher.createCallsQuickList(self.calls, self.cb_call_action)
+    unitylauncher.redrawQuicklist()  
+    
+  def calls_ringing(self) :
+    self.calls_ringing_started = True
+    if self.call_ringing > 0:
+        unitylauncher.urgent()
+    else :
+        self.calls_ringing_started = False
+    return self.call_ringing > 0
+    
+    
   # initialize skype
   def __init__(self):
     log("Initializing Skype API", INFO)
-    self.skype = Skype4Py.Skype()
+    self.skype = Skype4Py.Skype(None, Transport='x11')
+    self.call_ringing = 0
+    self.calls_ringing_started = False
     
     #register events
     self.skype.RegisterEventHandler('MessageStatus', self.MessageStatus)
     self.skype.RegisterEventHandler('OnlineStatus', self.OnlineStatus)
     self.skype.RegisterEventHandler('FileTransferStatusChanged', self.FileTransferStatusChanged)
+    self.skype.RegisterEventHandler('CallStatus', self.CallStatus)
     
     self.skype.Timeout = 500
     
@@ -445,8 +528,12 @@ class SkypeBehaviour:
             log("Starting Skype with extra params", INFO)
             subprocess.Popen(shlex.split("skype "+settings.get_start_skype_cmd_params()))
         else:
-            log("Starting Skype", INFO)
-            self.skype.Client.Start(Minimized=True)
+            if not helpers.isSkypeWrapperDesktopOnUnityLauncher():
+                log("Starting Skype process", INFO)
+                subprocess.Popen(shlex.split("skype"))
+            else:
+                log("Starting Skype", INFO)
+                self.skype.Client.Start(Minimized=True)
 
     log("Waiting for Skype Process", INFO)
     while True:
@@ -467,7 +554,8 @@ class SkypeBehaviour:
     log("Attached complete", INFO)
     
     #self.skype.Timeout = 30000
-    
+    unitylauncher.launcher.SkypeAgent = self.skype.Client
+    unitylauncher.launcher.redrawQuicklist()
     self.skype.Client.Minimize()
     self.name_mappings = {}
     self.unread_conversations = {}
@@ -481,6 +569,9 @@ class SkypeBehaviour:
     # stor all file transfers
     self.filetransfers = {}
     self.incomingfilecount = 0
+    
+    # store all calls current
+    self.calls = {}
     
     self.cb_show_conversation = None
     self.cb_show_indicator = None
@@ -683,7 +774,7 @@ class SkypeBehaviour:
                 if skypefriends.OnlineStatus == "OFFLINE" and friend == skypefriends.Handle:
                     del self.usersonline[skypefriends.Handle]
                     if not helpers.isUserBlacklisted(friend) and self.cb_user_status_change:
-                            self.cb_user_status_change(skypefriends.Handle, skypefriends.FullName, "went offline")
+                            self.cb_user_status_change(skypefriends, "went offline")
         
         #check who is now online
         if self.skype.Friends:
@@ -692,7 +783,7 @@ class SkypeBehaviour:
                     if friend.OnlineStatus != "OFFLINE":
                         self.usersonline[friend.Handle] = friend
                         if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change:
-                            self.cb_user_status_change(friend.Handle, friend.FullName, "is online")
+                            self.cb_user_status_change(friend, "is online")
         
         limitcpu()
     except Exception, e:
@@ -750,6 +841,7 @@ class SkypeBehaviour:
         CPUPRIORITY = 0
     except Exception, e:
         log("Checking unread messages failed: "+str(e), WARNING)
+        
     return AppletRunning
   
   def checkOnlineStatus(self):

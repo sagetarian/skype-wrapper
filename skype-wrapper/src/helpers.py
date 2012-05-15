@@ -31,8 +31,16 @@ import commands
 import time
 import settings
 import shared
+import pynotify
+
+PyNotify = True
+if not pynotify.init("Skype Wrapper"):
+    PyNotify = False
 
 installed_packages = {}
+
+def isSkypeWrapperDesktopOnUnityLauncher():
+    return "skype-wrapper.desktop" in commands.getoutput("gsettings get com.canonical.Unity.Launcher favorites")
 
 def isInstalled(package_name):
     global installed_packages
@@ -91,3 +99,49 @@ class CPULimiter:
 
 
 cpulimiter = CPULimiter("indicator-skype")
+
+pynotifications = {}
+
+def notify(title, body, icon, uid, critical, replace, chattopic = None):
+    if PyNotify:
+        global pynotifications
+        n = None
+        tmp = None
+        
+        # check if this guy is after someone else in a chat room / i.e break messages in a chatroom up by replicant
+        while True:
+            if chattopic and uid in pynotifications and "chat://"+chattopic in pynotifications and not pynotifications["chat://"+chattopic] == uid:
+                uid = uid+"/"
+            else:
+                break
+        
+        if uid and uid in pynotifications:
+            tmp = pynotifications[uid]
+            # check time lapse
+            n = tmp['n']
+            now = time.time()
+            time_lapse = now - tmp['start']
+            if replace or time_lapse > 10:
+                body = body
+            else:
+                body = tmp['body'] + "\n" + body
+            n.update(title, body, icon)
+            n.set_timeout(pynotify.EXPIRES_DEFAULT)
+        else:
+            n = pynotify.Notification(title, body, icon)
+            if uid:
+                pynotifications[uid] = {}
+                pynotifications[uid]['n'] = n
+        if critical:
+            n.set_urgency(pynotify.URGENCY_CRITICAL)
+        n.show()
+        if uid:
+            pynotifications[uid]['body'] = body
+            pynotifications[uid]['start'] = time.time()
+            if chattopic:
+                pynotifications["chat://"+chattopic] = uid
+            
+    else:
+        if icon:
+            icon = '-i "'+icon+'" '
+        os.system('notify-send '+icon+'"'+fullname+'" "'+online_text+'"');

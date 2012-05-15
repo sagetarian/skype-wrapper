@@ -31,14 +31,39 @@ import commands
 import time
 import settings
 import shared
+import pynotify
+
+PyNotify = True
+if not pynotify.init("Skype Wrapper"):
+    PyNotify = False
+
+installed_packages = {}
+
+def isSkypeWrapperDesktopOnUnityLauncher():
+    return "skype-wrapper.desktop" in commands.getoutput("gsettings get com.canonical.Unity.Launcher favorites")
 
 def isInstalled(package_name):
-    return not "not installed" in commands.getoutput("dpkg -s "+package_name)
+    global installed_packages
+    if package_name in installed_packages:
+        return installed_packages[package_name]
+    shortened = package_name
+    if len(package_name) > 5:
+        shortened = package_name[0:5]
+        
+    installed_packages[package_name] = len(commands.getoutput("dpkg -l "+package_name+" | grep \"ii  "+package_name+"\"")) > 0
+    return installed_packages[package_name]
+    
+def haveUnity():
+    return isInstalled('unity') or isInstalled('unity-2d')
     
 def version(package_name):
     if not isInstalled(package_name):
         return "not installed"
-    return commands.getoutput("dpkg -s "+package_name+" | grep Version:").replace("Version: ","")
+    description = commands.getoutput("dpkg -l "+package_name+" | grep \"ii  "+package_name+"\"")
+    clip = description[description.find(" "):].strip()
+    clip = clip[clip.find(" "):].strip()
+    clip = clip[:clip.find(" ")].strip()
+    return clip
     
 def isChatBlacklisted(chat) :
     # doesnt work
@@ -74,5 +99,49 @@ class CPULimiter:
 
 
 cpulimiter = CPULimiter("indicator-skype")
-#skypelimitwatcher = CPULimiter("skype")
 
+pynotifications = {}
+
+def notify(title, body, icon, uid, critical, replace, chattopic = None):
+    if PyNotify:
+        global pynotifications
+        n = None
+        tmp = None
+        
+        # check if this guy is after someone else in a chat room / i.e break messages in a chatroom up by replicant
+        while True:
+            if chattopic and uid in pynotifications and "chat://"+chattopic in pynotifications and not pynotifications["chat://"+chattopic] == uid:
+                uid = uid+"/"
+            else:
+                break
+        
+        if uid and uid in pynotifications:
+            tmp = pynotifications[uid]
+            # check time lapse
+            n = tmp['n']
+            now = time.time()
+            time_lapse = now - tmp['start']
+            if replace or time_lapse > 10:
+                body = body
+            else:
+                body = tmp['body'] + "\n" + body
+            n.update(title, body, icon)
+            n.set_timeout(pynotify.EXPIRES_DEFAULT)
+        else:
+            n = pynotify.Notification(title, body, icon)
+            if uid:
+                pynotifications[uid] = {}
+                pynotifications[uid]['n'] = n
+        if critical:
+            n.set_urgency(pynotify.URGENCY_CRITICAL)
+        n.show()
+        if uid:
+            pynotifications[uid]['body'] = body
+            pynotifications[uid]['start'] = time.time()
+            if chattopic:
+                pynotifications["chat://"+chattopic] = uid
+            
+    else:
+        if icon:
+            icon = '-i "'+icon+'" '
+        os.system('notify-send '+icon+'"'+fullname+'" "'+online_text+'"');

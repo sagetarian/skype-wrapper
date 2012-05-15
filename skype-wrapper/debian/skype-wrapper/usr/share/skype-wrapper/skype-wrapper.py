@@ -7,19 +7,35 @@ import commands
 import dbus
 import sys
 	
+def skypeRunning():
+    output = commands.getoutput('ps -A | grep skype' )
+    output = output.replace('skype-wrapper','')
+    output = output.replace('indicator-skype','')
+    return 'skype' in output
+	
+skype_was_running = False
+	
 def start_skype():
-	start = time.time()
-	ret = subprocess.call(['python','indicator-applet-skype.py'])
-	if ret == 2:
-	    start_skype()
-	    return
-	end = time.time()
-	print "Applet closed"
-	if end - start < 5:
-		print "API crash detected"
-		print "Restarting skype-wrapper"
-		start_skype()
-	return
+    global skype_was_running
+    
+    # some one quit skype while it was still unattached
+    if skype_was_running and not skypeRunning():
+        return
+    
+    skype_was_running = skypeRunning()
+    
+    start = time.time()
+    ret = subprocess.call(['python','indicator-applet-skype.py'])
+    if ret == 2:
+        start_skype()
+        return
+    end = time.time()
+    print "Applet closed"
+    if end - start < 5:
+        print "API crash detected"
+        print "Restarting skype-wrapper"
+        start_skype()
+    return
 
 
 if __name__ == "__main__":

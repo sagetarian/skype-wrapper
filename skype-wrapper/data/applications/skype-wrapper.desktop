@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Skype
-Comment=Skype Internet Telephony
+Comment=Wrapper for Skype Internet Telephony
 Exec=skype-wrapper
 Icon=skype
 NoDisplay=true

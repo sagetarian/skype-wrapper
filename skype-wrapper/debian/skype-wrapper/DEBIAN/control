@@ -1,8 +1,8 @@
 Package: skype-wrapper
-Version: 0ubuntu5-3.3
+Version: 0ubuntu5-4.6~precise1
 Architecture: all
 Maintainer: Shannon Black <shannon@netforge.co.za>
-Installed-Size: 220
+Installed-Size: 171
 Depends: python-skype (>= 1.0.31), gtk2-engines-pixbuf, python (>= 2.4), python-gobject, python-indicate, python-gtk2, python-dbus, python-imaging, python-support (>= 0.90.0)
 Suggests: skype
 Section: misc

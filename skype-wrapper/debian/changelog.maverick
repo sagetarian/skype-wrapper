@@ -1,27 +1,4 @@
-skype-wrapper (0ubuntu5-4.6~precise1) precise; urgency=low
-
-  * Fix start up errors [david-barbion]
-  
- -- Shannon Black <shannon@netforge.co.za>  Fri, 6 Apr 2012 10:11:49 +0200
- 
-skype-wrapper (0ubuntu5-4.5~precise1) precise; urgency=low
-
-  * Quicklist/Launcher fixes
-  
- -- Shannon Black <shannon@netforge.co.za>  Fri, 6 Apr 2012 10:11:49 +0200
-
-skype-wrapper (0ubuntu5-4.4~precise1) precise; urgency=low
-
-  * If available use display name when showing a status change notification
-  * No more need for you to add skype-wrapper.desktop to the launcher, uses the native skype icon
-  * Multiple messages show up in one notification
-  * Fix notification for chatrooms without a topic
-  * Add some quicklists for help
-  * Added call functions to quicklist
-  
- -- Shannon Black <shannon@netforge.co.za>  Fri, 6 Apr 2012 10:11:49 +0200
-
-skype-wrapper (0ubuntu5-4.3~precise1) precise; urgency=low
+skype-wrapper (0ubuntu5-4.3~maverick1) maverick; urgency=low
 
   * Experimental Maverick support
   * fix for commandline param
@@ -30,7 +7,7 @@ skype-wrapper (0ubuntu5-4.3~precise1) precise; urgency=low
 
  -- Shannon Black <shannon@netforge.co.za>  Mon, 17 Nov 2011 10:11:49 +0200
 
-skype-wrapper (0ubuntu5-4.2~precise1) precise; urgency=low
+skype-wrapper (0ubuntu5-4.2~maverick1) maverick; urgency=low
 
   * Experimental Maverick support
   * Remove dependency on unity
@@ -39,8 +16,8 @@ skype-wrapper (0ubuntu5-4.2~precise1) precise; urgency=low
   * attempt a fix for commandline param
 
  -- Shannon Black <shannon@netforge.co.za>  Mon, 17 Nov 2011 10:11:49 +0200
-
-skype-wrapper (0ubuntu5-4~precise1) precise; urgency=low
+ 
+skype-wrapper (0ubuntu5-4~maverick1) maverick; urgency=low
 
   * Set interval check back to 500ms
   * Don't do skype calls unless there is an update
@@ -48,20 +25,20 @@ skype-wrapper (0ubuntu5-4~precise1) precise; urgency=low
 
  -- Shannon Black <shannon@netforge.co.za>  Mon, 17 Nov 2011 10:11:49 +0200
 
-skype-wrapper (0ubuntu5-3.5~precise1) precise; urgency=low
+skype-wrapper (0ubuntu5-3.5~maverick1) maverick; urgency=low
 
   * Set interval check to 2000ms
   * Removed cpulimiter in certain sections of code
 
  -- Shannon Black <shannon@netforge.co.za>  Mon, 17 Nov 2011 10:11:49 +0200
 
-skype-wrapper (0ubuntu5-3.4~precise1) precise; urgency=low
+skype-wrapper (0ubuntu5-3.4~maverick1) maverick; urgency=low
 
   * Remove cpu load limit for a more stable release on the PPA
 
  -- Shannon Black <shannon@netforge.co.za>  Mon, 16 Nov 2011 10:11:49 +0200
 
-skype-wrapper (0ubuntu5-3.3~precise1) precise; urgency=low
+skype-wrapper (0ubuntu5-3.3~maverick1) maverick; urgency=low
 
   * Limit CPU Load
   * Add gsetting to increase cpu load limit (experimental)
@@ -69,20 +46,20 @@ skype-wrapper (0ubuntu5-3.3~precise1) precise; urgency=low
 
  -- Shannon Black <shannon@netforge.co.za>  Mon, 16 Nov 2011 10:11:49 +0200
 
-skype-wrapper (0ubuntu5-3~precise1) precise; urgency=low
+skype-wrapper (0ubuntu5-3~maverick1) maverick; urgency=low
 
   * Fix unity quicklist bugs
 
  -- Shannon Black <shannon@netforge.co.za>  Mon, 16 Nov 2011 10:11:49 +0200
 
-skype-wrapper (0ubuntu5-2.12~precise1) precise; urgency=low
+skype-wrapper (0ubuntu5-2.12~maverick1) maverick; urgency=low
 
   * Add unity quicklist for missed messages
   * Add event logging to gsettings so we can log to text files
 
  -- Shannon Black <shannon@netforge.co.za>  Mon, 15 Nov 2011 23:27:49 +0200
  
-skype-wrapper (0ubuntu5-2.10~precise1) precise; urgency=low
+skype-wrapper (0ubuntu5-2.10~maverick1) maverick; urgency=low
 
   * Initial PPA release (Closes: issue#4)  
   * Compile gschema after install
