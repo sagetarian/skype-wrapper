@@ -49,6 +49,3 @@ def get_debug_level():
     
 def get_cpu_limit():
     return float(settings.get_string("cpu-percentage-limit"))
-
-def get_use_global_status():
-    return settings.get_boolean("use-global-status")

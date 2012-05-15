@@ -879,7 +879,7 @@ class SkypeBehaviour:
         log("Couldn't open chat window ("+str(e)+")", WARNING)
     
   def setPresence(self, presence):
-    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('ps -A | grep mission-control' ) or not settings.get_use_global_status():
+    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('ps -A | grep mission-control' ):
         return
         
     account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
@@ -903,7 +903,7 @@ class SkypeBehaviour:
             dbus_interface='org.freedesktop.DBus.Properties')
   
   def getPresence(self) :
-    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('ps -A | grep mission-control' ) or not settings.get_use_global_status():
+    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('ps -A | grep mission-control' ):
         return None
         
     account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
