@@ -619,9 +619,6 @@ class SkypeBehaviour:
     self.cb_read_within_skype = func
 
   def remove_conversation(self, id):
-    #skype_name = self.name_mappings[display_name]
-    #self.unread_conversations[display_name].skypereturn.Seen = True
-    #del self.unread_conversations[id]
     try :
         display_name = self.unread_conversations[int(id)].display_name
         for _id in self.unread_conversations:
@@ -642,12 +639,20 @@ class SkypeBehaviour:
         if self.cb_log_message:
             self.cb_log_message(conversation)
    
-  def initOnlineUserList(self) :
-    if self.skype.Friends:
-        for friend in self.skype.Friends:
-            if not friend.Handle in self.usersonline:
-                if friend.OnlineStatus != "OFFLINE":
-                    self.usersonline[friend.Handle] = friend.FullName
+  def initOnlineUserList(self, count=0) :
+    try :
+        if self.skype.Friends:
+            for friend in self.skype.Friends:
+                if not friend.Handle in self.usersonline:
+                    if friend.OnlineStatus != "OFFLINE":
+                        self.usersonline[friend.Handle] = friend.FullName
+    except Exception, e:
+        if count < 5:
+            log("SkypeBehaviour::initOnlineUserList() failed, trying again", WARNING)
+            self.initOnlineUserList ( count+1 )
+        else:
+            log("Completely failed to initialize skype-wrapper: "+str(e), ERROR)
+            sys.exit(2) # perhaps its an issue with the dbus
   
   def checkFileTransfers(self) :
     if not self.filetransferupdatepending:
