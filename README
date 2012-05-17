@@ -53,6 +53,13 @@ Added to 0.5
  * Add option to disable telepathy global presence in gsettings [Andrei Shevchuk]
  * [Fix:] issue if telepathy mission control not running [Andrei Shevchuk]
 
+Changelog for 0.6
+ * No longer include python compiles [shakaran]
+ * Improve LGPL in all scripts [shakaran]
+ * Set encoding to utf-8 [shakaran]
+ * [Fix:] If the authorization dialog is open, we will wait to attach [sagetarian]
+ 
+
 Shannon Black
 2011
 
@@ -60,3 +67,4 @@ Contributions from:
 - Nikolay Yordanov - https://github.com/nyordanov
 - David Barbion - https://github.com/david-barbion
 - Andrei Shevchuk - https://github.com/shvchk
+- Ángel Guzmán Maeso - https://github.com/shakaran

@@ -32,6 +32,7 @@ import time
 import settings
 import shared
 import pynotify
+import wnck
 
 PyNotify = True
 if not pynotify.init("Skype Wrapper"):
@@ -145,3 +146,15 @@ def notify(title, body, icon, uid, critical, replace, chattopic = None):
         if icon:
             icon = '-i "'+icon+'" '
         os.system('notify-send '+icon+'"'+fullname+'" "'+online_text+'"');
+        
+def isAuthorizationRequestOpen():
+    """Used to determine if the authorization dialog is still open. Fixes the multiple authorization requests."""
+    wnck.screen_get_default().force_update()
+    window_list = wnck.screen_get_default().get_windows()
+    if len(window_list) == 0:
+    	return False
+    for win in window_list:
+        if "Skype API Authorisation Request" in win.get_name():
+            return True
+    return False    
+

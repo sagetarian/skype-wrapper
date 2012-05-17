@@ -507,7 +507,6 @@ class SkypeBehaviour:
         self.calls_ringing_started = False
     return self.call_ringing > 0
     
-    
   # initialize skype
   def __init__(self):
     log("Initializing Skype API", INFO)
@@ -537,15 +536,19 @@ class SkypeBehaviour:
 
     log("Waiting for Skype Process", INFO)
     while True:
-      output = commands.getoutput('ps -A | grep skype' )
-      if 'skype' in output.replace('skype-wrapper', ''):
+      if isSkypeRunning():
         break
 
     log("Attaching skype-wrapper to Skype process", INFO)
     while True:
         try:
-            self.skype.Attach(Wait=True)
-            break
+            # don't know if its our authorization request but we will wait our turn
+            if not helpers.isAuthorizationRequestOpen():
+                self.skype.Attach(Wait=True)
+                break
+            else:
+                log("Authorization dialog still open", INFO)
+                sys.exit(2)
         except:
             # we tell the parent process that the skype couldn't attached
             log("Failed to attach skype-wrapper to Skype process", WARNING)
