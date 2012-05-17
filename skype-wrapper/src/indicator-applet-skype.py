@@ -781,7 +781,7 @@ class SkypeBehaviour:
             for skypefriends in self.skype.Friends:
                 if skypefriends.OnlineStatus == "OFFLINE" and friend == skypefriends.Handle:
                     del self.usersonline[skypefriends.Handle]
-                    if not helpers.isUserBlacklisted(friend) and self.cb_user_status_change:
+                    if not helpers.isUserBlacklisted(friend) and self.cb_user_status_change and not friend.IsSkypeOutContact:
                             self.cb_user_status_change(skypefriends, "went offline")
         
         #check who is now online
@@ -790,7 +790,7 @@ class SkypeBehaviour:
                 if not friend.Handle in self.usersonline:
                     if friend.OnlineStatus != "OFFLINE":
                         self.usersonline[friend.Handle] = friend
-                        if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change:
+                        if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change and not friend.IsSkypeOutContact:
                             self.cb_user_status_change(friend, "is online")
         
         limitcpu()

@@ -58,6 +58,7 @@ Changelog for 0.6
  * Improve LGPL in all scripts [shakaran]
  * Set encoding to utf-8 [shakaran]
  * [Fix:] If the authorization dialog is open, we will wait to attach [sagetarian]
+ * [Fix:] SkypeOut contacts not mentioned as Online
  
 
 Shannon Black
