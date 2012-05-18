@@ -9,7 +9,7 @@ Homepage: https://github.com/sagetarian/skype-wrapper/
 Vcs-Git: git://git@github.com:sagetarian/skype-wrapper.git
 Vcs-Browser: https://sagetarian@github.com/sagetarian/skype-wrapper.git
 
-Version: 0.5.6
+Version: 0.6.2
 Package: skype-wrapper
 Depends: python-skype (>= 1.0.31), gtk2-engines-pixbuf, python, python-gobject, python-indicate, python-gtk2, python-dbus, python-imaging, ${python:Depends}, python-wnck
 Suggests: skype
