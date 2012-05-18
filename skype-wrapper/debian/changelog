@@ -1,7 +1,7 @@
-skype-wrapper (0ubuntu6-2.1~precise1) precise; urgency=low
+skype-wrapper (0ubuntu6.2.1~precise2) precise; urgency=low
 
 	* add a new settings dialog (experimental)
   	* the options page is its own application called Skype Wrapper Options
 	* fixed dependency problems
   
- -- Christian Rupp <christian@r-k-r.de> Fri, 18 May 2012 18:38:49 +0200
+ -- Christian Rupp <christian@r-k-r.de> Fri, 18 May 2012 18:39:49 +0200

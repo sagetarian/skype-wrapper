@@ -29,7 +29,7 @@
 
 from gi.repository import Gtk, Gio
 import settings
-import changesettings
+
 BASE_KEY = "apps.skype-wrapper"
 setting = Gio.Settings.new(BASE_KEY)
 
