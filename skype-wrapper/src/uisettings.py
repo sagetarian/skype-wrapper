@@ -94,7 +94,7 @@ class uisettings(Gtk.Window):
         		response = dialog.run()
 
         		if response == Gtk.ResponseType.OK:
-           			subprocess.call(['gksudo','python uninstallsni.py'])
+           			subprocess.call(['gksudo','python /usr/share/skype-wrapper/uninstallsni.py'])
 
            			           			
         		elif response == Gtk.ResponseType.CANCEL:
