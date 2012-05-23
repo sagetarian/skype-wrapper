@@ -52,7 +52,7 @@ setup(name='skype-wrapper',
       data_files=[('share/glib-2.0/schemas', ['data/schemas/apps.skype-wrapper.gschema.xml']),
         ('share/applications', ['data/applications/skype-wrapper.desktop', 'data/applications/skype-wrapper-settings.desktop']),
         ('share/pixmaps', ['data/pixmaps/skype-wrapper.svg']),
-        ('share/skype-wrapper', ['src/helpers.py', 'src/indicator-applet-skype','src/indicator-applet-skype.py','src/postinst.py','src/settings.py','src/shared.py','src/skype-wrapper.py','src/unitylauncher.py','src/uisettings.py']),
+        ('share/skype-wrapper', ['src/helpers.py', 'src/indicator-applet-skype','src/indicator-applet-skype.py','src/postinst.py','src/settings.py','src/shared.py','src/skype-wrapper.py','src/unitylauncher.py','src/uisettings.py','src/uninstallsni.py']),
         ('share/skype-wrapper/icons', ['src/icons/skype-24.svg','src/icons/skype-wrapper-16.png','src/icons/skype-wrapper-22.png','src/icons/skype-wrapper-24.png','src/icons/skype-wrapper-48.svg'])
       ],
       cmdclass={'install_data': InstallData},#, 'uninstall': Uninstall},
