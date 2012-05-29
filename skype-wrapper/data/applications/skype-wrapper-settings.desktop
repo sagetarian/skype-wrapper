@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Skype Wrapper Settings
+Comment=Settings for Wrapper for Skype Internet Telephony
+Exec=s-wrapper-settings
+Icon=/usr/share/skype-wrapper/icons/skype-wrapper-24.png
+NoDisplay=false
+Terminal=false
+Type=Application
+Encoding=UTF-8
