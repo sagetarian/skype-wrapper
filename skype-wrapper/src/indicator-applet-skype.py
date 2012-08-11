@@ -645,6 +645,8 @@ class SkypeBehaviour:
    
   def initOnlineUserList(self, count=0) :
     try :
+		log("Initializing online status for users", INFO)
+		time.sleep(5)
         if self.skype.Friends:
             for friend in self.skype.Friends:
                 if not friend.Handle in self.usersonline:
@@ -776,14 +778,6 @@ class SkypeBehaviour:
     self.onlineuserupdatepending = False
     try :
         log("Checking online status changing users", INFO)
-        #check who is now offline
-        tmp = self.usersonline
-        for friend, v in tmp.items():
-            for skypefriends in self.skype.Friends:
-                if skypefriends.OnlineStatus == "OFFLINE" and friend == skypefriends.Handle:
-                    del self.usersonline[skypefriends.Handle]
-                    if not helpers.isUserBlacklisted(friend) and self.cb_user_status_change and not friend.IsSkypeOutContact:
-                            self.cb_user_status_change(skypefriends, "went offline")
         
         #check who is now online
         if self.skype.Friends:
@@ -793,6 +787,15 @@ class SkypeBehaviour:
                         self.usersonline[friend.Handle] = friend
                         if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change and not friend.IsSkypeOutContact:
                             self.cb_user_status_change(friend, "is online")
+
+        #check who is now offline
+        if self.skype.Friends:
+            for friend in self.skype.Friends:
+                if friend.Handle in self.usersonline:
+                    if friend.OnlineStatus == "OFFLINE":
+                        if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change and not friend.IsSkypeOutContact and self.skype.CurrentUserStatus != "OFFLINE":
+	                        self.cb_user_status_change(friend, "went offline")
+                        del self.usersonline[friend.Handle]  
         
         limitcpu()
     except Exception, e:
