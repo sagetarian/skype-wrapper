@@ -413,9 +413,10 @@ class FileTransfer:
     self.partner_username = skype_transfer.PartnerHandle
 
 def isSkypeRunning():
-    output = commands.getoutput('ps -A | grep skype' )
-    output = output.replace('skype-wrapper', '')
-    return 'skype' in output.replace('indicator-skype', '')
+	
+    USER = commands.getoutput('whoami')
+    output = commands.getoutput('pgrep -x -l skype -u $USER')
+    return 'skype' in output
 
 class SkypeBehaviour:
   def MessageStatus(self, message, status): 
@@ -887,7 +888,8 @@ class SkypeBehaviour:
         log("Couldn't open chat window ("+str(e)+")", WARNING)
     
   def setPresence(self, presence):
-    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('ps -A | grep mission-control' ):
+    USER = commands.getoutput('whoami')
+    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('pgrep -x -l mission-control -u $USER' ):
         return
         
     account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
@@ -911,7 +913,8 @@ class SkypeBehaviour:
             dbus_interface='org.freedesktop.DBus.Properties')
   
   def getPresence(self) :
-    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('ps -A | grep mission-control' ):
+    USER = commands.getoutput('whoami')
+    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('pgrep -x -l mission-control -u $USER' ):
         return None
         
     account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
@@ -935,9 +938,8 @@ def runCheck():
         log("Check if Skype instance is running", INFO)
         #print self.skype.Client.IsRunning
         #calling self.skype.Client.IsRunning crashes. wtf. begin hack:
-        output = commands.getoutput('ps -A | grep skype' )
-        output = output.replace('skype-wrapper','')
-        output = output.replace('indicator-skype','')
+        USER = commands.getoutput('whoami')
+        output = commands.getoutput('pgrep -x -l skype -u $USER')
         
         if 'skype' not in output:
             log("Skype instance has terminated, exiting", WARNING)
