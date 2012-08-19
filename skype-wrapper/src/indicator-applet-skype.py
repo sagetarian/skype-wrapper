@@ -841,7 +841,11 @@ class SkypeBehaviour:
             for mesg in reversed(missedmessages):
                 try:
                     id = mesg.Id
-                    display_name = mesg.Chat.FriendlyName
+                    if self.skype.Friends:
+                        for friend in self.skype.Friends:
+                            if mesg.Chat.DialogPartner == friend.Handle:
+                                display_name = friend.FullName
+                                break                    
                 except:
                     log("Couldn't get missed message Chat object", ERROR)
                     continue
