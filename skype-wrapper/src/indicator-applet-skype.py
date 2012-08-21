@@ -496,7 +496,11 @@ class SkypeBehaviour:
         self.calls[id].StopVideoSend()
     if action == 'ENDVIDEOIN':
         self.calls[id].StopVideoReceive()
-        
+    if action == 'MUTE':
+        self.skype._SetMute(True)
+    if action == 'UNMUTE':
+        self.skype._SetMute(False)
+                
     unitylauncher.createCallsQuickList(self.calls, self.cb_call_action)
     unitylauncher.redrawQuicklist()  
     
@@ -559,6 +563,7 @@ class SkypeBehaviour:
     
     #self.skype.Timeout = 30000
     unitylauncher.launcher.SkypeAgent = self.skype.Client
+    unitylauncher.launcher.skype = self.skype
     unitylauncher.launcher.redrawQuicklist()
     self.skype.Client.Minimize()
     self.name_mappings = {}
