@@ -413,9 +413,10 @@ class FileTransfer:
     self.partner_username = skype_transfer.PartnerHandle
 
 def isSkypeRunning():
-    output = commands.getoutput('ps -A | grep skype' )
-    output = output.replace('skype-wrapper', '')
-    return 'skype' in output.replace('indicator-skype', '')
+	
+    USER = commands.getoutput('whoami')
+    output = commands.getoutput('pgrep -x -l skype -u $USER')
+    return 'skype' in output
 
 class SkypeBehaviour:
   def MessageStatus(self, message, status): 
@@ -458,7 +459,7 @@ class SkypeBehaviour:
     
     partner = call.PartnerDisplayName or call.PartnerHandle
     notification = ""
-    if status == "RINGING":
+    if status == "RINGING" and action != 'CALL':
         notification = "* Incoming call";
     if status == "INPROGRESS":
         notification = "* Call started";
@@ -495,7 +496,11 @@ class SkypeBehaviour:
         self.calls[id].StopVideoSend()
     if action == 'ENDVIDEOIN':
         self.calls[id].StopVideoReceive()
-        
+    if action == 'MUTE':
+        self.skype._SetMute(True)
+    if action == 'UNMUTE':
+        self.skype._SetMute(False)
+                
     unitylauncher.createCallsQuickList(self.calls, self.cb_call_action)
     unitylauncher.redrawQuicklist()  
     
@@ -558,6 +563,7 @@ class SkypeBehaviour:
     
     #self.skype.Timeout = 30000
     unitylauncher.launcher.SkypeAgent = self.skype.Client
+    unitylauncher.launcher.skype = self.skype
     unitylauncher.launcher.redrawQuicklist()
     self.skype.Client.Minimize()
     self.name_mappings = {}
@@ -583,13 +589,7 @@ class SkypeBehaviour:
     self.cb_read_within_skype = None
     self.cb_log_transfer = None
     
-    self.telepathy_presence = self.getPresence()
-    if self.telepathy_presence:
-        self.skype.ChangeUserStatus(SKYPESTATUS[self.telepathy_presence])
-    self.skype_presence = self.skype.CurrentUserStatus
-    
-    if not settings.get_notify_on_initializing():
-        self.initOnlineUserList()
+    self.initSkypeFirstStart()    
         
     self.messageupdatepending = True
     GObject.timeout_add(CB_INTERVALS, self.checkUnreadMessages)
@@ -602,7 +602,7 @@ class SkypeBehaviour:
     
     self.filetransferupdatepending = True
     GObject.timeout_add(CB_INTERVALS, self.checkFileTransfers)
-
+    
   def SetShowConversationCallback(self, func):
     self.cb_show_conversation = func
 
@@ -642,20 +642,46 @@ class SkypeBehaviour:
         if self.cb_log_message:
             self.cb_log_message(conversation)
    
-  def initOnlineUserList(self, count=0) :
+  def initSkypeFirstStart(self, count=0) :
+    global are_we_offline
+    
+    self.telepathy_presence = self.getPresence()
+    if self.telepathy_presence ==  "OFFLINE" and not settings.get_use_global_status():
+        self.skype.ChangeUserStatus(SKYPESTATUS[self.telepathy_presence])
+    self.skype_presence = self.skype.CurrentUserStatus
+    
     try :
-        if self.skype.Friends:
-            for friend in self.skype.Friends:
-                if not friend.Handle in self.usersonline:
-                    if friend.OnlineStatus != "OFFLINE":
-                        self.usersonline[friend.Handle] = friend.FullName
+        log("Initializing online status for users", INFO)
+        max_wait_time = 0
+        while self.skype.CurrentUserStatus == "OFFLINE":
+            log("We are offline", INFO)
+            time.sleep(1)
+            max_wait_time = max_wait_time + 1
+            if max_wait_time == 10:
+                are_we_offline = True
+                break
+        if self.skype.CurrentUserStatus != "OFFLINE":
+            time.sleep(2)
+            are_we_offline = False
+            if not settings.get_notify_on_initializing():
+                if self.skype.Friends:
+                    for friend in self.skype.Friends:
+                        if not friend.Handle in self.usersonline:
+                            if friend.OnlineStatus != "OFFLINE":
+                                self.usersonline[friend.Handle] = friend.FullName
     except Exception, e:
         if count < 5:
-            log("SkypeBehaviour::initOnlineUserList() failed, trying again", WARNING)
-            self.initOnlineUserList ( count+1 )
+            log("SkypeBehaviour::initSkypeFirstStart() failed, trying again", WARNING)
+            self.initSkypeFirstStart ( count+1 )
         else:
             log("Completely failed to initialize skype-wrapper: "+str(e), ERROR)
             sys.exit(2) # perhaps its an issue with the dbus
+    
+    if self.telepathy_presence and settings.get_use_global_status():
+        self.skype.ChangeUserStatus(SKYPESTATUS[self.telepathy_presence])
+    self.skype_presence = self.skype.CurrentUserStatus
+    
+    return AppletRunning
   
   def checkFileTransfers(self) :
     if not self.filetransferupdatepending:
@@ -770,28 +796,31 @@ class SkypeBehaviour:
     return AppletRunning
    
   def checkOnlineUsers(self) :
+    global are_we_offline
     if not self.onlineuserupdatepending:
         return AppletRunning
     self.onlineuserupdatepending = False
     try :
         log("Checking online status changing users", INFO)
-        #check who is now offline
-        tmp = self.usersonline
-        for friend, v in tmp.items():
-            for skypefriends in self.skype.Friends:
-                if skypefriends.OnlineStatus == "OFFLINE" and friend == skypefriends.Handle:
-                    del self.usersonline[skypefriends.Handle]
-                    if not helpers.isUserBlacklisted(friend) and self.cb_user_status_change and not friend.IsSkypeOutContact:
-                            self.cb_user_status_change(skypefriends, "went offline")
-        
+            
         #check who is now online
         if self.skype.Friends:
             for friend in self.skype.Friends:
                 if not friend.Handle in self.usersonline:
                     if friend.OnlineStatus != "OFFLINE":
                         self.usersonline[friend.Handle] = friend
-                        if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change and not friend.IsSkypeOutContact:
+                        if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change and not friend.IsSkypeOutContact and are_we_offline != True:
                             self.cb_user_status_change(friend, "is online")
+            are_we_offline = False
+        
+        #check who is now offline
+        if self.skype.Friends:
+            for friend in self.skype.Friends:
+                if friend.Handle in self.usersonline:
+                    if friend.OnlineStatus == "OFFLINE":
+                        if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change and not friend.IsSkypeOutContact and self.skype.CurrentUserStatus != "OFFLINE":
+	                        self.cb_user_status_change(friend, "went offline")
+                        del self.usersonline[friend.Handle]  
         
         limitcpu()
     except Exception, e:
@@ -817,7 +846,11 @@ class SkypeBehaviour:
             for mesg in reversed(missedmessages):
                 try:
                     id = mesg.Id
-                    display_name = mesg.Chat.FriendlyName
+                    if self.skype.Friends:
+                        for friend in self.skype.Friends:
+                            if mesg.Chat.DialogPartner == friend.Handle:
+                                display_name = friend.FullName
+                                break                    
                 except:
                     log("Couldn't get missed message Chat object", ERROR)
                     continue
@@ -853,15 +886,17 @@ class SkypeBehaviour:
     return AppletRunning
   
   def checkOnlineStatus(self):
+    global are_we_offline
     try :
         log("Checking online presence", INFO)
         
-        new_telepathy_presence = self.getPresence()
-        if new_telepathy_presence and new_telepathy_presence != self.telepathy_presence:
-            self.telepathy_presence = new_telepathy_presence
-            self.skype.ChangeUserStatus(SKYPESTATUS[self.telepathy_presence])
-            self.skype_presence = SKYPESTATUS[self.telepathy_presence]
-            return AppletRunning
+        if settings.get_use_global_status():
+            new_telepathy_presence = self.getPresence()
+            if new_telepathy_presence and new_telepathy_presence != self.telepathy_presence:
+                self.telepathy_presence = new_telepathy_presence
+                self.skype.ChangeUserStatus(SKYPESTATUS[self.telepathy_presence])
+                self.skype_presence = SKYPESTATUS[self.telepathy_presence]
+                return AppletRunning
             
         if not self.onlinepresenceupdatepending:
             return AppletRunning
@@ -869,11 +904,15 @@ class SkypeBehaviour:
         self.onlinepresenceupdatepending = False
         
         new_skype_presence = self.skype.CurrentUserStatus
+        if new_skype_presence == "OFFLINE":
+            are_we_offline = True
         if self.skype_presence != new_skype_presence:
             self.skype_presence = new_skype_presence
-            new_telepathy_presence = SKYPETOTELEPATHY[self.skype_presence]
-            self.setPresence(new_telepathy_presence)
-            self.telepathy_presence = new_telepathy_presence
+            if settings.get_use_global_status():
+                new_telepathy_presence = SKYPETOTELEPATHY[self.skype_presence]
+                self.setPresence(new_telepathy_presence)
+                self.telepathy_presence = new_telepathy_presence
+            
         limitcpu()
     except Exception, e:
         log("Checking online presence failed "+str(e), WARNING)
@@ -887,7 +926,8 @@ class SkypeBehaviour:
         log("Couldn't open chat window ("+str(e)+")", WARNING)
     
   def setPresence(self, presence):
-    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('ps -A | grep mission-control' ):
+    USER = commands.getoutput('whoami')
+    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('pgrep -x -l mission-control -u $USER' ):
         return
         
     account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
@@ -911,7 +951,8 @@ class SkypeBehaviour:
             dbus_interface='org.freedesktop.DBus.Properties')
   
   def getPresence(self) :
-    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('ps -A | grep mission-control' ):
+    USER = commands.getoutput('whoami')
+    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('pgrep -x -l mission-control -u $USER' ):
         return None
         
     account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
@@ -935,9 +976,8 @@ def runCheck():
         log("Check if Skype instance is running", INFO)
         #print self.skype.Client.IsRunning
         #calling self.skype.Client.IsRunning crashes. wtf. begin hack:
-        output = commands.getoutput('ps -A | grep skype' )
-        output = output.replace('skype-wrapper','')
-        output = output.replace('indicator-skype','')
+        USER = commands.getoutput('whoami')
+        output = commands.getoutput('pgrep -x -l skype -u $USER')
         
         if 'skype' not in output:
             log("Skype instance has terminated, exiting", WARNING)

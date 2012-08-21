@@ -35,9 +35,8 @@ import dbus
 import sys
 	
 def skypeRunning():
-    output = commands.getoutput('ps -A | grep skype' )
-    output = output.replace('skype-wrapper','')
-    output = output.replace('indicator-skype','')
+    USER = commands.getoutput('whoami')
+    output = commands.getoutput('pgrep -x -l skype -u $USER')
     return 'skype' in output
 	
 skype_was_running = False
@@ -67,8 +66,9 @@ def start_skype():
 
 if __name__ == "__main__":
     os.chdir('/usr/share/skype-wrapper')
-
-    output = commands.getoutput('ps -A | grep indicator-skype' )
+	
+    USER = commands.getoutput('whoami')
+    output = commands.getoutput('pgrep -x -l indicator-skype -u $USER')
     
     # until the dbus is working just disallow skype-wrapper
     if 'indicator-skype' in output:

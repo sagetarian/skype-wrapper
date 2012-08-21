@@ -31,7 +31,7 @@ import apt
 
 
 cache = apt.Cache()
-pkg = cache['sni-qt']
+pkg = cache['sni-qt:i386']
 pkg.mark_delete()
 cache.commit()
 

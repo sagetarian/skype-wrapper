@@ -170,7 +170,17 @@ class SkypeWrapperLauncher:
             if cb_call_action:
                 self.calls_quicklist[str(priority)+"reject://"+call.PartnerHandle].connect ("item-activated", cb_call_action)
                 
-        if call.Status == 'LOCALHOLD':
+        if call.Status == 'LOCALHOLD' and self.skype.Mute == False:
+            priority = priority + 1
+            self.calls_quicklist[str(priority)+"mute://"+call.PartnerHandle] = Dbusmenu.Menuitem.new ()
+            self.calls_quicklist[str(priority)+"mute://"+call.PartnerHandle].property_set (Dbusmenu.MENUITEM_PROP_LABEL, str("Mute Call: "+partner))
+            self.calls_quicklist[str(priority)+"mute://"+call.PartnerHandle].property_set ("id", str(call.PartnerHandle))
+            self.calls_quicklist[str(priority)+"mute://"+call.PartnerHandle].property_set ("action", "MUTE")
+            self.calls_quicklist[str(priority)+"mute://"+call.PartnerHandle].property_set_bool (Dbusmenu.MENUITEM_PROP_VISIBLE, True)
+            
+            if cb_call_action:
+                self.calls_quicklist[str(priority)+"mute://"+call.PartnerHandle].connect ("item-activated", cb_call_action)    
+        
             priority = priority + 1
             self.calls_quicklist[str(priority)+"resume://"+call.PartnerHandle] = Dbusmenu.Menuitem.new ()
             self.calls_quicklist[str(priority)+"resume://"+call.PartnerHandle].property_set (Dbusmenu.MENUITEM_PROP_LABEL, str("Resume Call: "+partner))
@@ -188,7 +198,36 @@ class SkypeWrapperLauncher:
             self.calls_quicklist[str(priority)+"end://"+call.PartnerHandle].property_set_bool (Dbusmenu.MENUITEM_PROP_VISIBLE, True)
             if cb_call_action:
                 self.calls_quicklist[str(priority)+"end://"+call.PartnerHandle].connect ("item-activated", cb_call_action)
+ 
+        if call.Status == 'LOCALHOLD' and self.skype.Mute == True:
+            priority = priority + 1
+            self.calls_quicklist[str(priority)+"unmute://"+call.PartnerHandle] = Dbusmenu.Menuitem.new ()
+            self.calls_quicklist[str(priority)+"unmute://"+call.PartnerHandle].property_set (Dbusmenu.MENUITEM_PROP_LABEL, str("Unmute Call: "+partner))
+            self.calls_quicklist[str(priority)+"unmute://"+call.PartnerHandle].property_set ("id", str(call.PartnerHandle))
+            self.calls_quicklist[str(priority)+"unmute://"+call.PartnerHandle].property_set ("action", "UNMUTE")
+            self.calls_quicklist[str(priority)+call.PartnerHandle].property_set_bool (Dbusmenu.MENUITEM_PROP_VISIBLE, True)
+            
+            if cb_call_action:
+                self.calls_quicklist[str(priority)+"unmute://"+call.PartnerHandle].connect ("item-activated", cb_call_action)                   
+        
+            priority = priority + 1
+            self.calls_quicklist[str(priority)+"resume://"+call.PartnerHandle] = Dbusmenu.Menuitem.new ()
+            self.calls_quicklist[str(priority)+"resume://"+call.PartnerHandle].property_set (Dbusmenu.MENUITEM_PROP_LABEL, str("Resume Call: "+partner))
+            self.calls_quicklist[str(priority)+"resume://"+call.PartnerHandle].property_set ("id", str(call.PartnerHandle))
+            self.calls_quicklist[str(priority)+"resume://"+call.PartnerHandle].property_set ("action", "RESUME")
+            self.calls_quicklist[str(priority)+"resume://"+call.PartnerHandle].property_set_bool (Dbusmenu.MENUITEM_PROP_VISIBLE, True)
+            if cb_call_action:
+                self.calls_quicklist[str(priority)+"resume://"+call.PartnerHandle].connect ("item-activated", cb_call_action)
                 
+            priority = priority + 1
+            self.calls_quicklist[str(priority)+"end://"+call.PartnerHandle] = Dbusmenu.Menuitem.new ()
+            self.calls_quicklist[str(priority)+"end://"+call.PartnerHandle].property_set (Dbusmenu.MENUITEM_PROP_LABEL, str("End Call: "+partner))
+            self.calls_quicklist[str(priority)+"end://"+call.PartnerHandle].property_set ("id", str(call.PartnerHandle))
+            self.calls_quicklist[str(priority)+"end://"+call.PartnerHandle].property_set ("action", "FINISH")
+            self.calls_quicklist[str(priority)+"end://"+call.PartnerHandle].property_set_bool (Dbusmenu.MENUITEM_PROP_VISIBLE, True)
+            if cb_call_action:
+                self.calls_quicklist[str(priority)+"end://"+call.PartnerHandle].connect ("item-activated", cb_call_action)
+                 
         if call.Status == 'REMOTEHOLD' or call.Status == 'ROUTING':                 
             priority = priority + 1
             self.calls_quicklist[str(priority)+"end://"+call.PartnerHandle] = Dbusmenu.Menuitem.new ()
@@ -199,7 +238,46 @@ class SkypeWrapperLauncher:
             if cb_call_action:
                 self.calls_quicklist[str(priority)+"end://"+call.PartnerHandle].connect ("item-activated", cb_call_action)
                 
-        if call.Status == 'INPROGRESS':
+        if call.Status == 'INPROGRESS' and self.skype.Mute == False:
+            priority = priority + 1
+            self.calls_quicklist[str(priority)+"mute://"+call.PartnerHandle] = Dbusmenu.Menuitem.new ()
+            self.calls_quicklist[str(priority)+"mute://"+call.PartnerHandle].property_set (Dbusmenu.MENUITEM_PROP_LABEL, str("Mute Call: "+partner))
+            self.calls_quicklist[str(priority)+"mute://"+call.PartnerHandle].property_set ("id", str(call.PartnerHandle))
+            self.calls_quicklist[str(priority)+"mute://"+call.PartnerHandle].property_set ("action", "MUTE")
+            self.calls_quicklist[str(priority)+"mute://"+call.PartnerHandle].property_set_bool (Dbusmenu.MENUITEM_PROP_VISIBLE, True)
+            
+            if cb_call_action:
+                self.calls_quicklist[str(priority)+"mute://"+call.PartnerHandle].connect ("item-activated", cb_call_action)         
+                    
+            priority = priority + 1
+            self.calls_quicklist[str(priority)+"hold://"+call.PartnerHandle] = Dbusmenu.Menuitem.new ()
+            self.calls_quicklist[str(priority)+"hold://"+call.PartnerHandle].property_set (Dbusmenu.MENUITEM_PROP_LABEL, str("Hold Call: "+partner))
+            self.calls_quicklist[str(priority)+"hold://"+call.PartnerHandle].property_set ("id", str(call.PartnerHandle))
+            self.calls_quicklist[str(priority)+"hold://"+call.PartnerHandle].property_set ("action", "HOLD")
+            self.calls_quicklist[str(priority)+"hold://"+call.PartnerHandle].property_set_bool (Dbusmenu.MENUITEM_PROP_VISIBLE, True)
+            if cb_call_action:
+                self.calls_quicklist[str(priority)+"hold://"+call.PartnerHandle].connect ("item-activated", cb_call_action)
+                
+            priority = priority + 1
+            self.calls_quicklist[str(priority)+"end://"+call.PartnerHandle] = Dbusmenu.Menuitem.new ()
+            self.calls_quicklist[str(priority)+"end://"+call.PartnerHandle].property_set (Dbusmenu.MENUITEM_PROP_LABEL, str("End Call: "+partner))
+            self.calls_quicklist[str(priority)+"end://"+call.PartnerHandle].property_set ("id", str(call.PartnerHandle))
+            self.calls_quicklist[str(priority)+"end://"+call.PartnerHandle].property_set ("action", "FINISH")
+            self.calls_quicklist[str(priority)+"end://"+call.PartnerHandle].property_set_bool (Dbusmenu.MENUITEM_PROP_VISIBLE, True)
+            if cb_call_action:
+                self.calls_quicklist[str(priority)+"end://"+call.PartnerHandle].connect ("item-activated", cb_call_action)
+                
+        if call.Status == 'INPROGRESS'  and self.skype.Mute == True:
+            priority = priority + 1
+            self.calls_quicklist[str(priority)+"unmute://"+call.PartnerHandle] = Dbusmenu.Menuitem.new ()
+            self.calls_quicklist[str(priority)+"unmute://"+call.PartnerHandle].property_set (Dbusmenu.MENUITEM_PROP_LABEL, str("Unmute Call: "+partner))
+            self.calls_quicklist[str(priority)+"unmute://"+call.PartnerHandle].property_set ("id", str(call.PartnerHandle))
+            self.calls_quicklist[str(priority)+"unmute://"+call.PartnerHandle].property_set ("action", "UNMUTE")
+            self.calls_quicklist[str(priority)+"unmute://"+call.PartnerHandle].property_set_bool (Dbusmenu.MENUITEM_PROP_VISIBLE, True)
+            
+            if cb_call_action:
+                self.calls_quicklist[str(priority)+"unmute://"+call.PartnerHandle].connect ("item-activated", cb_call_action)           
+            
             priority = priority + 1
             self.calls_quicklist[str(priority)+"hold://"+call.PartnerHandle] = Dbusmenu.Menuitem.new ()
             self.calls_quicklist[str(priority)+"hold://"+call.PartnerHandle].property_set (Dbusmenu.MENUITEM_PROP_LABEL, str("Hold Call: "+partner))
