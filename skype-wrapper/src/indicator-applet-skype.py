@@ -849,7 +849,7 @@ class SkypeBehaviour:
                     if self.skype.Friends:
                         for friend in self.skype.Friends:
                             if mesg.Chat.DialogPartner == friend.Handle:
-                                display_name = friend.FullName
+                                display_name = friend.DisplayName
                                 break                    
                 except:
                     log("Couldn't get missed message Chat object", ERROR)
