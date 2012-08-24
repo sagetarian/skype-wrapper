@@ -459,7 +459,7 @@ class SkypeBehaviour:
     
     partner = call.PartnerDisplayName or call.PartnerHandle
     notification = ""
-    if status == "RINGING" and action != 'CALL':
+    if status == "RINGING" and (call.Type == "INCOMING_P2P" or call.Type == "INCOMING_PSTN"):
         notification = "* Incoming call";
     if status == "INPROGRESS":
         notification = "* Call started";
