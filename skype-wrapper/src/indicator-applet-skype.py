@@ -413,76 +413,75 @@ class FileTransfer:
     self.partner_username = skype_transfer.PartnerHandle
 
 def isSkypeRunning():
-	
-    USER = commands.getoutput('whoami')
     output = commands.getoutput('pgrep -x -l skype -u $USER')
-    return 'skype' in output
+    return 'skype' in output    
+
+
+player_paused = False
+active_player = "unknown"
 
 def controlMusicPlayer():
     global active_player, player_paused
-    MediaPlayer1 = ('bangarang', 'dap', 'gogglesmm')
-    MediaPlayer2 = ('amarok', 'audacious', 'banshee', 'clementine', 'gmusicbrowser', 'guayadeque', 'rhythmbox')
-    MediaPlayer3 = ('exaile', 'quodlibet')
+    MediaPlayer = ('amarok', 'audacious', 'bangarang', 'banshee', 'clementine', 'dap', 'exaile', 'gmusicbrowser', 'gogglesmm', 'guayadeque', 'quodlibet', 'rhythmbox')
     
-    for item in MediaPlayer2:
-        if bus.name_has_owner('org.mpris.MediaPlayer2.' + item):
-            proxy = bus.get_object('org.mpris.MediaPlayer2.' + item, '/org/mpris/MediaPlayer2')
-            properties_manager = dbus.Interface(proxy, 'org.freedesktop.DBus.Properties')
-            curr_Status = properties_manager.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')
-            player_action = dbus.Interface(proxy, 'org.mpris.MediaPlayer2.Player')
-            if curr_Status == "Playing":
-                player_action.Pause()
-                active_player = item
-                player_paused = True
-            elif curr_Status == "Paused" and active_player == item and player_paused == True:
-                player_action.Play()
-                active_player = ""
-                player_paused = False
-
-    for item in MediaPlayer1:
-        if bus.name_has_owner('org.mpris.' + item):
-            proxy = bus.get_object('org.mpris.' + item, '/Player')
-            first_Status = proxy.PositionGet()
-            print first_Status
-            time.sleep(1)
-            second_Status = proxy.PositionGet()
-            print second_Status  
-            if first_Status != second_Status:
-                proxy.Pause()
-                active_player = item
-                player_paused = True
-            elif active_player == item and player_paused == True:
-                print "mach was"
-                proxy.Pause()
-                active_player = ""
-                player_paused = False
-                
-    for item in MediaPlayer3:
-        if item == "exaile":
-            if bus.name_has_owner('org.exaile.Exaile'):
-                proxy = bus.get_object('org.exaile.Exaile', '/org/exaile/Exaile')
-                curr_Status = proxy.GetState()
-                print curr_Status
-                if curr_Status == "playing":
-                    proxy.PlayPause()
+    for item in MediaPlayer:
+        if item == 'amarok' or item == 'audacious' or item == 'banshee' or item == 'clementine' or item == 'gmusicbrowser' or item == 'guayadeque' or item == 'rhythmbox':
+            if bus.name_has_owner('org.mpris.MediaPlayer2.' + item):
+                remote_player = bus.get_object('org.mpris.MediaPlayer2.' + item, '/org/mpris/MediaPlayer2')
+                properties_manager = dbus.Interface(remote_player, 'org.freedesktop.DBus.Properties')
+                curr_Status = properties_manager.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')
+                player_action = dbus.Interface(remote_player, 'org.mpris.MediaPlayer2.Player')
+                if curr_Status == "Playing":
+                    player_action.Pause()
                     active_player = item
                     player_paused = True
+                    break
+                elif curr_Status == "Paused" and active_player == item and player_paused == True:
+                    player_action.Play()
+                    break
+                    
+        elif item == 'bangarang' or item == 'dap' or item == 'gogglesmm':
+            if bus.name_has_owner('org.mpris.' + item):
+                remote_player = bus.get_object('org.mpris.' + item, '/Player')
+                first_Status = remote_player.PositionGet()
+                time.sleep(1)
+                second_Status = remote_player.PositionGet()
+                if first_Status != second_Status:
+                    remote_player.Pause()
+                    active_player = item
+                    player_paused = True
+                    break
+                elif active_player == item and player_paused == True:
+                    remote_player.Pause()
+                    break
+                    
+        elif item == "exaile":
+            if bus.name_has_owner('org.exaile.Exaile'):
+                remote_player = bus.get_object('org.exaile.Exaile', '/org/exaile/Exaile')
+                curr_Status = remote_player.GetState()
+                if curr_Status == "playing":
+                    remote_player.PlayPause()
+                    active_player = item
+                    player_paused = True
+                    break
                 elif curr_Status == "paused" and active_player == item and player_paused == True:
-                    proxy.PlayPause()
-                    active_player = ""
-                    player_paused = False
+                    remote_player.PlayPause()
+                    break
+                    
         elif item == "quodlibet":
             if bus.name_has_owner('net.sacredchao.QuodLibet'):
-                proxy = bus.get_object('net.sacredchao.QuodLibet', '/net/sacredchao/QuodLibet')
-                curr_Status = proxy.IsPlaying()
+                remote_player = bus.get_object('net.sacredchao.QuodLibet', '/net/sacredchao/QuodLibet')
+                curr_Status = remote_player.IsPlaying()
                 if curr_Status == 1:
-                    proxy.Pause()
+                    remote_player.Pause()
                     active_player = item
                     player_paused = True
+                    break
                 elif curr_Status == 0 and active_player == item and player_paused == True:
-                    proxy.Play()
-                    active_player = ""
-                    player_paused = False            
+                    remote_player.Play()
+                    break
+        else:
+            player_paused = True  
                                 
 class SkypeBehaviour:
   def MessageStatus(self, message, status): 
@@ -496,11 +495,9 @@ class SkypeBehaviour:
     self.filetransferupdatepending = True
     
   def CallStatus(self, call, status):
+    global active_player, player_paused
     if status == "RINGING":
-        if settings.get_control_music_player():
-            global active_player, player_paused
-            player_paused = False
-            active_player = ""
+        if settings.get_control_music_player() and active_player == "unknown" and player_paused == False:
             controlMusicPlayer()
         self.call_ringing = self.call_ringing + 1
         self.calls[call.PartnerHandle] = call
@@ -509,9 +506,11 @@ class SkypeBehaviour:
     
     #if status == "INPROGRESS":LOCALHOLD
     
-    if (status == "MISSED" or status == "FINISHED") and call.PartnerHandle in self.calls:
+    if (status == "MISSED" or status == "FINISHED" or status == "REFUSED" or status == "CANCELLED") and call.PartnerHandle in self.calls:
         if settings.get_control_music_player():
             controlMusicPlayer()
+            active_player = "unknown"
+            player_paused = False
         del self.calls[call.PartnerHandle]
         
     unitylauncher.createCallsQuickList(self.calls, self.cb_call_action)
