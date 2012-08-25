@@ -80,3 +80,7 @@ def get_use_global_status():
 def get_control_music_player():
     return settings.get_boolean("control-music-player")
     
+def get_restore_volume():
+    return settings.get_boolean("restore-volume")
+    
+    

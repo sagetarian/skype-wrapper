@@ -481,7 +481,34 @@ def controlMusicPlayer():
                     remote_player.Play()
                     break
         else:
-            player_paused = True  
+            player_paused = True
+
+
+volume_level = "unknown"
+
+def SaveRestore_Volume():
+    global volume_level, numid            
+    if volume_level == "unknown":
+        searchstring = ",iface=MIXER,name='Master Playback Volume'"
+        output = commands.getoutput('amixer controls | grep "' + searchstring + '"')
+        if output:
+            numid= output.replace(searchstring, "")
+            searchstring = "  : values="
+            output = commands.getoutput('amixer cget ' + numid + ' | grep "' + searchstring + '"')
+            if output:
+                volume_level = output.replace(searchstring, "")
+            else:
+                log("Couldn't determine Volume", WARNING)
+        else:
+            log("Master Mixer not found", WARNING)
+    elif not volume_level == "unknown":
+        searchstring = "  : values="
+        output = commands.getoutput('amixer cset ' + numid + ' ' + volume_level +  ' | grep "' + searchstring + volume_level + '"')
+        if output == searchstring + volume_level:
+            log("Restored Volume", INFO)
+        else:
+            log("Volume not restored", WARNING)
+                  
                                 
 class SkypeBehaviour:
   def MessageStatus(self, message, status): 
@@ -495,10 +522,12 @@ class SkypeBehaviour:
     self.filetransferupdatepending = True
     
   def CallStatus(self, call, status):
-    global active_player, player_paused
+    global active_player, player_paused, volume_level
     if status == "RINGING":
         if settings.get_control_music_player() and active_player == "unknown" and player_paused == False:
             controlMusicPlayer()
+        if settings.get_restore_volume():
+            SaveRestore_Volume()
         self.call_ringing = self.call_ringing + 1
         self.calls[call.PartnerHandle] = call
     else:
@@ -507,6 +536,9 @@ class SkypeBehaviour:
     #if status == "INPROGRESS":LOCALHOLD
     
     if (status == "MISSED" or status == "FINISHED" or status == "REFUSED" or status == "CANCELLED") and call.PartnerHandle in self.calls:
+        if settings.get_restore_volume():
+            SaveRestore_Volume()
+            volume_level = "unknown"
         if settings.get_control_music_player():
             controlMusicPlayer()
             active_player = "unknown"

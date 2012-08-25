@@ -81,5 +81,10 @@
       <summary>Toggle Music Player</summary>
       <description>Pauses playback when starting a call and resumes it after the call ended.</description>
     </key>
+    <key type="b" name="restore-volume">
+      <default>true</default>
+      <summary>Restore playback volume</summary>
+      <description>Restore the volume to the level prior the call.</description>
+    </key>
   </schema>
 </schemalist>
