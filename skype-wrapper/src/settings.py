@@ -76,3 +76,7 @@ def get_cpu_limit():
     
 def get_use_global_status():
     return settings.get_boolean("use-global-status")
+    
+def get_control_music_player():
+    return settings.get_boolean("control-music-player")
+    

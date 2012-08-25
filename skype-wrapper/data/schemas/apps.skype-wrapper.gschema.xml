@@ -76,5 +76,10 @@
       <summary>Use global status</summary>
       <description>Set Skype status from Messaging Menu (true) or independently (false).</description>
     </key>
+    <key type="b" name="control-music-player">
+      <default>true</default>
+      <summary>Toggle Music Player</summary>
+      <description>Pauses playback when starting a call and resumes it after the call ended.</description>
+    </key>
   </schema>
 </schemalist>

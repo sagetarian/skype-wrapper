@@ -77,6 +77,7 @@ class uisettings(Gtk.Window):
                 self.switch( table, "Show outgoing File Transfer progress in the Launcher", "show-outgoing-file-progress" )
                 self.switch( table, "Show incoming File Transfer progress in the Launcher", "show-incoming-file-progress" )
                 self.switch( table, "Use the global online status of the system", "use-global-status" )
+                self.switch( table, "Toggle music playback before and after a call", "control-music-player" )
 
                 gtk_btn_adv = Gtk.Button("Remove the panel icon")
                 gtk_btn = Gtk.Button("Close")

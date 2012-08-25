@@ -418,6 +418,72 @@ def isSkypeRunning():
     output = commands.getoutput('pgrep -x -l skype -u $USER')
     return 'skype' in output
 
+def controlMusicPlayer():
+    global active_player, player_paused
+    MediaPlayer1 = ('bangarang', 'dap', 'gogglesmm')
+    MediaPlayer2 = ('amarok', 'audacious', 'banshee', 'clementine', 'gmusicbrowser', 'guayadeque', 'rhythmbox')
+    MediaPlayer3 = ('exaile', 'quodlibet')
+    
+    for item in MediaPlayer2:
+        if bus.name_has_owner('org.mpris.MediaPlayer2.' + item):
+            proxy = bus.get_object('org.mpris.MediaPlayer2.' + item, '/org/mpris/MediaPlayer2')
+            properties_manager = dbus.Interface(proxy, 'org.freedesktop.DBus.Properties')
+            curr_Status = properties_manager.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')
+            player_action = dbus.Interface(proxy, 'org.mpris.MediaPlayer2.Player')
+            if curr_Status == "Playing":
+                player_action.Pause()
+                active_player = item
+                player_paused = True
+            elif curr_Status == "Paused" and active_player == item and player_paused == True:
+                player_action.Play()
+                active_player = ""
+                player_paused = False
+
+    for item in MediaPlayer1:
+        if bus.name_has_owner('org.mpris.' + item):
+            proxy = bus.get_object('org.mpris.' + item, '/Player')
+            first_Status = proxy.PositionGet()
+            print first_Status
+            time.sleep(1)
+            second_Status = proxy.PositionGet()
+            print second_Status  
+            if first_Status != second_Status:
+                proxy.Pause()
+                active_player = item
+                player_paused = True
+            elif active_player == item and player_paused == True:
+                print "mach was"
+                proxy.Pause()
+                active_player = ""
+                player_paused = False
+                
+    for item in MediaPlayer3:
+        if item == "exaile":
+            if bus.name_has_owner('org.exaile.Exaile'):
+                proxy = bus.get_object('org.exaile.Exaile', '/org/exaile/Exaile')
+                curr_Status = proxy.GetState()
+                print curr_Status
+                if curr_Status == "playing":
+                    proxy.PlayPause()
+                    active_player = item
+                    player_paused = True
+                elif curr_Status == "paused" and active_player == item and player_paused == True:
+                    proxy.PlayPause()
+                    active_player = ""
+                    player_paused = False
+        elif item == "quodlibet":
+            if bus.name_has_owner('net.sacredchao.QuodLibet'):
+                proxy = bus.get_object('net.sacredchao.QuodLibet', '/net/sacredchao/QuodLibet')
+                curr_Status = proxy.IsPlaying()
+                if curr_Status == 1:
+                    proxy.Pause()
+                    active_player = item
+                    player_paused = True
+                elif curr_Status == 0 and active_player == item and player_paused == True:
+                    proxy.Play()
+                    active_player = ""
+                    player_paused = False            
+                                
 class SkypeBehaviour:
   def MessageStatus(self, message, status): 
     self.messageupdatepending = True
@@ -429,8 +495,13 @@ class SkypeBehaviour:
   def FileTransferStatusChanged(self, message, status): 
     self.filetransferupdatepending = True
     
-  def CallStatus(self, call, status): 
+  def CallStatus(self, call, status):
     if status == "RINGING":
+        if settings.get_control_music_player():
+            global active_player, player_paused
+            player_paused = False
+            active_player = ""
+            controlMusicPlayer()
         self.call_ringing = self.call_ringing + 1
         self.calls[call.PartnerHandle] = call
     else:
@@ -439,6 +510,8 @@ class SkypeBehaviour:
     #if status == "INPROGRESS":LOCALHOLD
     
     if (status == "MISSED" or status == "FINISHED") and call.PartnerHandle in self.calls:
+        if settings.get_control_music_player():
+            controlMusicPlayer()
         del self.calls[call.PartnerHandle]
         
     unitylauncher.createCallsQuickList(self.calls, self.cb_call_action)
@@ -588,7 +661,7 @@ class SkypeBehaviour:
     self.cb_log_message = None
     self.cb_read_within_skype = None
     self.cb_log_transfer = None
-    
+
     self.initSkypeFirstStart()    
         
     self.messageupdatepending = True
