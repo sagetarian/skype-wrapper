@@ -727,20 +727,20 @@ class SkypeBehaviour:
         max_wait_time = 0
         while self.skype.CurrentUserStatus == "OFFLINE":
             log("We are offline", INFO)
-            time.sleep(1)
+            time.sleep(0.5)
             max_wait_time = max_wait_time + 1
-            if max_wait_time == 10:
+            if max_wait_time == 20:
                 are_we_offline = True
                 break
         if self.skype.CurrentUserStatus != "OFFLINE":
-            time.sleep(2)
             are_we_offline = False
             if not settings.get_notify_on_initializing():
+                time.sleep(5)
                 if self.skype.Friends:
                     for friend in self.skype.Friends:
                         if not friend.Handle in self.usersonline:
                             if friend.OnlineStatus != "OFFLINE":
-                                self.usersonline[friend.Handle] = friend.FullName
+                                self.usersonline[friend.Handle] = friend
     except Exception, e:
         if count < 5:
             log("SkypeBehaviour::initSkypeFirstStart() failed, trying again", WARNING)
@@ -881,7 +881,7 @@ class SkypeBehaviour:
                 if not friend.Handle in self.usersonline:
                     if friend.OnlineStatus != "OFFLINE":
                         self.usersonline[friend.Handle] = friend
-                        if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change and not friend.IsSkypeOutContact and are_we_offline != True:
+                        if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change and not friend.IsSkypeOutContact and are_we_offline == False:
                             self.cb_user_status_change(friend, "is online")
             are_we_offline = False
         
@@ -998,8 +998,7 @@ class SkypeBehaviour:
         log("Couldn't open chat window ("+str(e)+")", WARNING)
     
   def setPresence(self, presence):
-    USER = commands.getoutput('whoami')
-    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('pgrep -x -l mission-control -u $USER' ):
+    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('pgrep -x -l mission-control -u $USER'):
         return
         
     account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
@@ -1023,8 +1022,7 @@ class SkypeBehaviour:
             dbus_interface='org.freedesktop.DBus.Properties')
   
   def getPresence(self) :
-    USER = commands.getoutput('whoami')
-    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('pgrep -x -l mission-control -u $USER' ):
+    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('pgrep -x -l mission-control -u $USER'):
         return None
         
     account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
@@ -1048,7 +1046,6 @@ def runCheck():
         log("Check if Skype instance is running", INFO)
         #print self.skype.Client.IsRunning
         #calling self.skype.Client.IsRunning crashes. wtf. begin hack:
-        USER = commands.getoutput('whoami')
         output = commands.getoutput('pgrep -x -l skype -u $USER')
         
         if 'skype' not in output:
