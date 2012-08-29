@@ -413,11 +413,103 @@ class FileTransfer:
     self.partner_username = skype_transfer.PartnerHandle
 
 def isSkypeRunning():
-	
-    USER = commands.getoutput('whoami')
     output = commands.getoutput('pgrep -x -l skype -u $USER')
-    return 'skype' in output
+    return 'skype' in output    
 
+
+player_paused = False
+active_player = "unknown"
+
+def controlMusicPlayer():
+    global active_player, player_paused
+    MediaPlayer = ('amarok', 'audacious', 'bangarang', 'banshee', 'clementine', 'dap', 'exaile', 'gmusicbrowser', 'gogglesmm', 'guayadeque', 'quodlibet', 'rhythmbox')
+    
+    for item in MediaPlayer:
+        if item == 'amarok' or item == 'audacious' or item == 'banshee' or item == 'clementine' or item == 'gmusicbrowser' or item == 'guayadeque' or item == 'rhythmbox':
+            if bus.name_has_owner('org.mpris.MediaPlayer2.' + item):
+                remote_player = bus.get_object('org.mpris.MediaPlayer2.' + item, '/org/mpris/MediaPlayer2')
+                properties_manager = dbus.Interface(remote_player, 'org.freedesktop.DBus.Properties')
+                curr_Status = properties_manager.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')
+                player_action = dbus.Interface(remote_player, 'org.mpris.MediaPlayer2.Player')
+                if curr_Status == "Playing":
+                    player_action.Pause()
+                    active_player = item
+                    player_paused = True
+                    break
+                elif curr_Status == "Paused" and active_player == item and player_paused == True:
+                    player_action.Play()
+                    break
+                    
+        elif item == 'bangarang' or item == 'dap' or item == 'gogglesmm':
+            if bus.name_has_owner('org.mpris.' + item):
+                remote_player = bus.get_object('org.mpris.' + item, '/Player')
+                first_Status = remote_player.PositionGet()
+                time.sleep(1)
+                second_Status = remote_player.PositionGet()
+                if first_Status != second_Status:
+                    remote_player.Pause()
+                    active_player = item
+                    player_paused = True
+                    break
+                elif active_player == item and player_paused == True:
+                    remote_player.Pause()
+                    break
+                    
+        elif item == "exaile":
+            if bus.name_has_owner('org.exaile.Exaile'):
+                remote_player = bus.get_object('org.exaile.Exaile', '/org/exaile/Exaile')
+                curr_Status = remote_player.GetState()
+                if curr_Status == "playing":
+                    remote_player.PlayPause()
+                    active_player = item
+                    player_paused = True
+                    break
+                elif curr_Status == "paused" and active_player == item and player_paused == True:
+                    remote_player.PlayPause()
+                    break
+                    
+        elif item == "quodlibet":
+            if bus.name_has_owner('net.sacredchao.QuodLibet'):
+                remote_player = bus.get_object('net.sacredchao.QuodLibet', '/net/sacredchao/QuodLibet')
+                curr_Status = remote_player.IsPlaying()
+                if curr_Status == 1:
+                    remote_player.Pause()
+                    active_player = item
+                    player_paused = True
+                    break
+                elif curr_Status == 0 and active_player == item and player_paused == True:
+                    remote_player.Play()
+                    break
+        else:
+            player_paused = True
+
+
+volume_level = "unknown"
+
+def SaveRestore_Volume():
+    global volume_level, numid            
+    if volume_level == "unknown":
+        searchstring = ",iface=MIXER,name='Master Playback Volume'"
+        output = commands.getoutput('amixer controls | grep "' + searchstring + '"')
+        if output:
+            numid= output.replace(searchstring, "")
+            searchstring = "  : values="
+            output = commands.getoutput('amixer cget ' + numid + ' | grep "' + searchstring + '"')
+            if output:
+                volume_level = output.replace(searchstring, "")
+            else:
+                log("Couldn't determine Volume", WARNING)
+        else:
+            log("Master Mixer not found", WARNING)
+    elif not volume_level == "unknown":
+        searchstring = "  : values="
+        output = commands.getoutput('amixer cset ' + numid + ' ' + volume_level +  ' | grep "' + searchstring + volume_level + '"')
+        if output == searchstring + volume_level:
+            log("Restored Volume", INFO)
+        else:
+            log("Volume not restored", WARNING)
+                  
+                                
 class SkypeBehaviour:
   def MessageStatus(self, message, status): 
     self.messageupdatepending = True
@@ -429,8 +521,13 @@ class SkypeBehaviour:
   def FileTransferStatusChanged(self, message, status): 
     self.filetransferupdatepending = True
     
-  def CallStatus(self, call, status): 
+  def CallStatus(self, call, status):
+    global active_player, player_paused, volume_level
     if status == "RINGING":
+        if settings.get_control_music_player() and active_player == "unknown" and player_paused == False:
+            controlMusicPlayer()
+        if settings.get_restore_volume():
+            SaveRestore_Volume()
         self.call_ringing = self.call_ringing + 1
         self.calls[call.PartnerHandle] = call
     else:
@@ -438,7 +535,14 @@ class SkypeBehaviour:
     
     #if status == "INPROGRESS":LOCALHOLD
     
-    if (status == "MISSED" or status == "FINISHED") and call.PartnerHandle in self.calls:
+    if (status == "MISSED" or status == "FINISHED" or status == "REFUSED" or status == "CANCELLED") and call.PartnerHandle in self.calls:
+        if settings.get_restore_volume():
+            SaveRestore_Volume()
+            volume_level = "unknown"
+        if settings.get_control_music_player():
+            controlMusicPlayer()
+            active_player = "unknown"
+            player_paused = False
         del self.calls[call.PartnerHandle]
         
     unitylauncher.createCallsQuickList(self.calls, self.cb_call_action)
@@ -459,7 +563,7 @@ class SkypeBehaviour:
     
     partner = call.PartnerDisplayName or call.PartnerHandle
     notification = ""
-    if status == "RINGING" and action != 'CALL':
+    if status == "RINGING" and (call.Type == "INCOMING_P2P" or call.Type == "INCOMING_PSTN"):
         notification = "* Incoming call";
     if status == "INPROGRESS":
         notification = "* Call started";
@@ -588,7 +692,7 @@ class SkypeBehaviour:
     self.cb_log_message = None
     self.cb_read_within_skype = None
     self.cb_log_transfer = None
-    
+
     self.initSkypeFirstStart()    
         
     self.messageupdatepending = True
@@ -655,20 +759,20 @@ class SkypeBehaviour:
         max_wait_time = 0
         while self.skype.CurrentUserStatus == "OFFLINE":
             log("We are offline", INFO)
-            time.sleep(1)
+            time.sleep(0.5)
             max_wait_time = max_wait_time + 1
-            if max_wait_time == 10:
+            if max_wait_time == 20:
                 are_we_offline = True
                 break
         if self.skype.CurrentUserStatus != "OFFLINE":
-            time.sleep(2)
             are_we_offline = False
             if not settings.get_notify_on_initializing():
+                time.sleep(5)
                 if self.skype.Friends:
                     for friend in self.skype.Friends:
                         if not friend.Handle in self.usersonline:
                             if friend.OnlineStatus != "OFFLINE":
-                                self.usersonline[friend.Handle] = friend.FullName
+                                self.usersonline[friend.Handle] = friend
     except Exception, e:
         if count < 5:
             log("SkypeBehaviour::initSkypeFirstStart() failed, trying again", WARNING)
@@ -809,7 +913,7 @@ class SkypeBehaviour:
                 if not friend.Handle in self.usersonline:
                     if friend.OnlineStatus != "OFFLINE":
                         self.usersonline[friend.Handle] = friend
-                        if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change and not friend.IsSkypeOutContact and are_we_offline != True:
+                        if not helpers.isUserBlacklisted(friend.Handle) and self.cb_user_status_change and not friend.IsSkypeOutContact and are_we_offline == False:
                             self.cb_user_status_change(friend, "is online")
             are_we_offline = False
         
@@ -849,7 +953,7 @@ class SkypeBehaviour:
                     if self.skype.Friends:
                         for friend in self.skype.Friends:
                             if mesg.Chat.DialogPartner == friend.Handle:
-                                display_name = friend.FullName
+                                display_name = friend.DisplayName or friend.FullName or friend.Handle
                                 break                    
                 except:
                     log("Couldn't get missed message Chat object", ERROR)
@@ -926,8 +1030,7 @@ class SkypeBehaviour:
         log("Couldn't open chat window ("+str(e)+")", WARNING)
     
   def setPresence(self, presence):
-    USER = commands.getoutput('whoami')
-    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('pgrep -x -l mission-control -u $USER' ):
+    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('pgrep -x -l mission-control -u $USER'):
         return
         
     account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
@@ -951,8 +1054,7 @@ class SkypeBehaviour:
             dbus_interface='org.freedesktop.DBus.Properties')
   
   def getPresence(self) :
-    USER = commands.getoutput('whoami')
-    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('pgrep -x -l mission-control -u $USER' ):
+    if not helpers.isInstalled('telepathy-mission-control-5') or 'mission-control' not in commands.getoutput('pgrep -x -l mission-control -u $USER'):
         return None
         
     account_manager = bus.get_object('org.freedesktop.Telepathy.AccountManager',
@@ -976,7 +1078,6 @@ def runCheck():
         log("Check if Skype instance is running", INFO)
         #print self.skype.Client.IsRunning
         #calling self.skype.Client.IsRunning crashes. wtf. begin hack:
-        USER = commands.getoutput('whoami')
         output = commands.getoutput('pgrep -x -l skype -u $USER')
         
         if 'skype' not in output:
